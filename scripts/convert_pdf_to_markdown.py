@@ -13,9 +13,15 @@ def main() -> None:
     parser.add_argument("--product-name", required=True)
     parser.add_argument("--source-type", required=True)
     parser.add_argument("--source-date")
+    parser.add_argument("--raw-output", type=Path)
     args = parser.parse_args()
 
     raw_markdown = convert_pdf_to_markdown(args.input_pdf)
+    if args.raw_output:
+        args.raw_output.parent.mkdir(parents=True, exist_ok=True)
+        args.raw_output.write_text(raw_markdown, encoding="utf-8")
+        print(f"Ham Markdown oluşturuldu: {args.raw_output}")
+
     normalized = format_product_markdown(
         raw_markdown,
         product_id=args.product_id,
