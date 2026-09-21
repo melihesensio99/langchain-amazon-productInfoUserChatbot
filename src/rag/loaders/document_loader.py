@@ -3,6 +3,8 @@ from pathlib import Path
 import pandas as pd
 from langchain_core.documents import Document
 
+from src.rag.loaders.markdown_loader import load_markdown_document, load_processed_markdown
+
 
 def load_csv_documents(csv_path: str | Path) -> list[Document]:
     dataframe = pd.read_csv(csv_path, keep_default_na=False)
@@ -23,16 +25,4 @@ def load_csv_documents(csv_path: str | Path) -> list[Document]:
 
 
 def load_markdown_documents(markdown_path: str | Path) -> list[Document]:
-    path = Path(markdown_path)
-    raw_text = path.read_text(encoding="utf-8")
-    metadata: dict[str, str] = {"source_type": "markdown", "source_file": path.name}
-
-    if raw_text.startswith("---"):
-        _, frontmatter, content = raw_text.split("---", 2)
-        for line in frontmatter.strip().splitlines():
-            if ":" in line:
-                key, value = line.split(":", 1)
-                metadata[key.strip()] = value.strip()
-        raw_text = content.strip()
-
-    return [Document(page_content=raw_text, metadata=metadata)]
+    return [load_markdown_document(markdown_path)]
