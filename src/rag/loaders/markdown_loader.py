@@ -31,9 +31,5 @@ def load_markdown_document(markdown_path: str | Path) -> Document:
 
 
 def load_processed_markdown(directory: str | Path) -> list[Document]:
-    paths = sorted(
-        path
-        for path in Path(directory).glob("*.md")
-        if not path.stem.endswith("-fresh")
-    )
+    paths = sorted(Path(directory).glob("*.md"))
     return [load_markdown_document(path) for path in paths]
