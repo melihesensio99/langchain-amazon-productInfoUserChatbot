@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+python-dotenv
+pandas
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters
+langchain-mistralai
+langchain-huggingface
+langchain-qdrant
+qdrant-client
+sentence-transformers
+docling
+python-multipart
