@@ -8,5 +8,5 @@ router = APIRouter()
 
 @router.post("", response_model=IngestResponse)
 def ingest() -> IngestResponse:
-    count = IngestionService().ingest_csv()
+    count = IngestionService().ingest_processed_markdown()
     return IngestResponse(indexed_documents=count)
