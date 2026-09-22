@@ -1,6 +1,8 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 
+from src.rag.normalizers.chunk_quality import analyze_chunk
+
 
 def get_text_splitter() -> RecursiveCharacterTextSplitter:
     return RecursiveCharacterTextSplitter(
@@ -26,4 +28,8 @@ def split_markdown_documents(documents):
         for chunk in header_chunks:
             chunk.metadata = {**document.metadata, **chunk.metadata}
         chunks.extend(recursive_splitter.split_documents(header_chunks))
-    return chunks
+    return [
+        chunk
+        for chunk in chunks
+        if not analyze_chunk(chunk).is_boilerplate_candidate
+    ]
