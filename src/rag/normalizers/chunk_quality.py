@@ -31,6 +31,7 @@ class ChunkQualityReport:
 
 def analyze_chunk(document: Document) -> ChunkQualityReport:
     text = document.page_content.strip()
+    # Breadcrumb kalite hesabını etkilemesin; yalnızca gerçek içerik ölçülür.
     analysis_text = _CONTEXT_PREFIX.sub("", text, count=1).strip()
     words = len(analysis_text.split())
     links = len(_LINK_PATTERN.findall(analysis_text))
@@ -38,10 +39,12 @@ def analyze_chunk(document: Document) -> ChunkQualityReport:
     reasons: list[str] = []
 
     if words < 30:
+        # Çok kısa içerikler footer veya yalnızca başlık olabilir.
         score += 1
         reasons.append("short_text")
 
     if links >= 2:
+        # Kısa ve çok linkli içerikler genellikle navigasyon/footer'dır.
         score += 2
         reasons.append("multiple_links")
     elif links == 1 and words < 20:
@@ -50,6 +53,7 @@ def analyze_chunk(document: Document) -> ChunkQualityReport:
 
     lowered = analysis_text.casefold()
     if any(term in lowered for term in _NAVIGATION_TERMS):
+        # Site haritası ve kullanım şartları gibi ürün dışı metinleri işaretler.
         score += 2
         reasons.append("navigation_language")
 
@@ -61,6 +65,7 @@ def analyze_chunk(document: Document) -> ChunkQualityReport:
         char.isdigit() for char in analysis_text
     )
     if is_single_heading and not contains_structured_value:
+        # Sadece başlık olan chunk embedding için anlamlı içerik taşımaz.
         score += 1
         reasons.append("heading_only")
 
