@@ -87,3 +87,15 @@ Top-3 gürültüsü: Var
 - [ ] Bölüm başlıklarının parser tarafından doğru aktarılmasını kontrol et.
 - [ ] `score_threshold` değerini test et.
 - [ ] Gerekirse reranker veya hibrit arama ekle.
+
+## Test 1 - Boilerplate filtresi sonrası
+
+Kalite filtresi `split_markdown_documents()` içine bağlandı. Qdrant collection temizlenip yeniden ingestion yapıldı.
+
+```text
+Önce: 109 chunk
+Sonra: 108 chunk
+Çıkarılan: 1 boilerplate chunk
+```
+
+Tekrar yapılan aynı sorguda footer sonucu artık dönmedi. Yeni üçüncü sonuç, footer yerine ürünün renk seçenekleri gibi gerçek ürün içeriği oldu.
