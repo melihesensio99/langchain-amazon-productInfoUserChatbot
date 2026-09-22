@@ -4,7 +4,10 @@ from src.schemas.chat import ChatRequest, ChatResponse
 
 
 class ChatService:
+    """Retrieval ve QA chain'i kullanarak ürün sorularını cevaplar."""
+
     def __init__(self) -> None:
+        # Retriever ilgili chunk'ları, chain ise cevabı üretir.
         self.retriever = get_product_retriever()
         self.chain = build_qa_chain(self.retriever)
 

@@ -18,10 +18,15 @@ _NAVIGATION_TERMS = (
 
 @dataclass(frozen=True)
 class ChunkQualityReport:
+    """Bir chunk'ın kalite ölçümlerini ve filtreleme kararını taşır."""
+
+    # Chunk'ın temel kalite ölçümleri.
     characters: int
     words: int
     links: int
     boilerplate_score: int
+
+    # Skorun nedenlerini açıklar.
     reasons: tuple[str, ...]
 
     @property

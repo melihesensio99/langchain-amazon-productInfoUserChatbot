@@ -1,6 +1,8 @@
 class RagException(Exception):
-    """Base exception for RAG operations."""
+    """RAG katmanındaki özel hataların temel sınıfıdır."""
 
 
 class ConfigurationError(RagException):
+    """Eksik veya hatalı uygulama konfigürasyonu hatasıdır."""
+
     pass
