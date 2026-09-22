@@ -99,3 +99,17 @@ Sonra: 94 chunk
 ```
 
 Tekrar yapılan aynı sorguda footer sonucu artık dönmedi. Yeni üçüncü sonuç, footer yerine ürünün renk seçenekleri gibi gerçek ürün içeriği oldu. Teknik değer taşıyan tek satırlı başlıklar, örneğin `Genişlik: 71,5 mm ... Ağırlık: 172 gram`, korunmuştur.
+
+## Test 1 - Breadcrumb sonrası
+
+Chunk içeriğinin başına belge ve bölüm bağlamı eklendi:
+
+```text
+[Belge: Apple iPhone 14 | Bölüm: Apple iPhone 14 > ...]
+```
+
+`iPhone 14'ün ağırlığı nedir` sorgusunda ağırlık chunk'ı artık ilk sırada geldi:
+
+```text
+score: 0.9394
+```

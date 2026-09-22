@@ -5,6 +5,7 @@ from langchain_core.documents import Document
 
 
 _LINK_PATTERN = re.compile(r"https?://|\]\(")
+_CONTEXT_PREFIX = re.compile(r"^\[Belge:[^\n]+\]\s*")
 _NAVIGATION_TERMS = (
     "site haritası",
     "kullanım şartları",
@@ -30,8 +31,9 @@ class ChunkQualityReport:
 
 def analyze_chunk(document: Document) -> ChunkQualityReport:
     text = document.page_content.strip()
-    words = len(text.split())
-    links = len(_LINK_PATTERN.findall(text))
+    analysis_text = _CONTEXT_PREFIX.sub("", text, count=1).strip()
+    words = len(analysis_text.split())
+    links = len(_LINK_PATTERN.findall(analysis_text))
     score = 0
     reasons: list[str] = []
 
@@ -46,19 +48,24 @@ def analyze_chunk(document: Document) -> ChunkQualityReport:
         score += 1
         reasons.append("short_link_text")
 
-    lowered = text.casefold()
+    lowered = analysis_text.casefold()
     if any(term in lowered for term in _NAVIGATION_TERMS):
         score += 2
         reasons.append("navigation_language")
 
-    is_single_heading = text.startswith("#") and len(text.splitlines()) <= 1
-    contains_structured_value = ":" in text or any(char.isdigit() for char in text)
+    is_single_heading = (
+        analysis_text.startswith("#")
+        and len(analysis_text.splitlines()) <= 1
+    )
+    contains_structured_value = ":" in analysis_text or any(
+        char.isdigit() for char in analysis_text
+    )
     if is_single_heading and not contains_structured_value:
         score += 1
         reasons.append("heading_only")
 
     return ChunkQualityReport(
-        characters=len(text),
+        characters=len(analysis_text),
         words=words,
         links=links,
         boilerplate_score=score,
