@@ -38,12 +38,20 @@ def search_product_chunks(
     query: str,
     *,
     top_k: int | None = None,
+    score_threshold: float | None = None,
     product_id: str | None = None,
     source_type: str | None = None,
 ) -> list[tuple[Document, float]]:
     """Return the most relevant chunks and their Qdrant scores."""
     settings = get_settings()
-    limit = top_k or settings.top_k
+    # top_k, Qdrant'ın kaç aday sonucu değerlendirmeye göndereceğini belirler.
+    limit = top_k if top_k is not None else settings.top_k
+    # Eşik verilmezse merkezi proje ayarındaki varsayılan kullanılır.
+    threshold = (
+        score_threshold
+        if score_threshold is not None
+        else settings.retrieval_score_threshold
+    )
     query_filter = _build_filter(
         product_id=product_id,
         source_type=source_type,
@@ -53,4 +61,6 @@ def search_product_chunks(
         query,
         k=limit,
         filter=query_filter,
+        # COSINE similarity'de yüksek skor daha iyi eşleşme demektir.
+        score_threshold=threshold,
     )

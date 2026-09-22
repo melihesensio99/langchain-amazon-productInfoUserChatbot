@@ -9,6 +9,7 @@ def main() -> None:
     )
     parser.add_argument("query", help="User question or search query")
     parser.add_argument("--top-k", type=int, default=None)
+    parser.add_argument("--score-threshold", type=float, default=None)
     parser.add_argument("--product-id")
     parser.add_argument("--source-type")
     args = parser.parse_args()
@@ -16,6 +17,7 @@ def main() -> None:
     results = search_product_chunks(
         args.query,
         top_k=args.top_k,
+        score_threshold=args.score_threshold,
         product_id=args.product_id,
         source_type=args.source_type,
     )

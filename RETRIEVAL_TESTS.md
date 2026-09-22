@@ -148,3 +148,53 @@ Genişlik: 71,5 mm ... Ağırlık: 172 gram
 ```
 
 Değerlendirme: Breadcrumb, teknik değer chunk'ının doğal kullanıcı sorusuyla eşleşmesini iyileştirdi ve doğru chunk'ı üçüncü sıradan birinci sıraya taşıdı.
+
+## Test 2 - Semantic search'in kapasite sorgusunda yetersiz kalması
+
+### Sorgu
+
+```text
+iPhone 14 hangi depolama seçeneklerine sahip
+```
+
+### Komut
+
+```powershell
+python -m scripts.search_chunks `
+  "iPhone 14 hangi depolama seçeneklerine sahip" `
+  --top-k 3 `
+  --score-threshold 0.90
+```
+
+### Sonuç
+
+```text
+Sonuç bulunamadı.
+```
+
+Aynı sorgu daha düşük eşik ve daha geniş aday sayısıyla incelendiğinde doğru `Kapasite` chunk'ı bulundu, ancak üst sıralarda değildi:
+
+```text
+Kapasite chunk skoru: 0.8931
+TrueDepth Kamera chunk skoru: 0.8912
+```
+
+`Kapasite` chunk'ının içeriği:
+
+```text
+128 GB
+256 GB
+512 GB
+```
+
+### Değerlendirme
+
+Bu test üç problemi gösteriyor:
+
+1. `score_threshold=0.90`, doğru chunk'ın `0.8931` skorunu eledi.
+2. Threshold düşürüldüğünde bile `TrueDepth Kamera` gibi alakasız bir chunk daha üst sıraya çıktı.
+3. Doğru kapasite chunk'ı mevcut olmasına rağmen doğal dildeki “depolama seçenekleri” ifadesiyle yeterince iyi eşleşmedi.
+
+Sonuç olarak yalnızca `top_k` ve skor eşiğini ayarlamak yeterli değildir. `kapasite`, `depolama` ve `GB` gibi kritik kelimeleri doğrudan dikkate alan keyword search, semantic sonuçlarla birleştirilmelidir.
+
+Bu test, hybrid search eklenmesi için retrieval katmanındaki somut kanıttır.

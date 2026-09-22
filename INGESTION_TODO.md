@@ -15,6 +15,8 @@ PDF → Docling → Markdown → frontmatter → loader → chunking → embeddi
 - [ ] Büyük PDF işlemlerini API request'inden ayırıp background job/worker kullan.
 - [ ] Ingestion başlangıç, başarı ve hata loglarını ekle.
 - [ ] Parser çıktısı ve tablo bütünlüğü için kalite kontrolleri ekle.
+- [ ] Docling'in genişlik, uzunluk ve ağırlık gibi teknik özellik satırlarını yanlışlıkla `h2` başlığına dönüştürmesini düzelt; mevcut hata örneği `h2: "Genişlik: 71,5 mm ... Ağırlık: 172 gram"`.
+- [ ] Düzeltme sonrası aynı iPhone 14 chunk'ını tekrar kontrol et; beklenen yapı `h2: "Boyut ve Ağırlık"` ve ağırlık bilgisinin `page_content` içinde ayrı bir özellik satırı olmasıdır.
 - [ ] Ürün, doküman tipi ve versiyon metadata filtrelerini destekle.
 - [ ] Başarısız dosyaları ve tekrar denenebilir ingestion durumlarını kaydet.
 - [ ] Chunk sayısı, işlenen dosya ve hata özetini API response'unda raporla.
