@@ -13,9 +13,12 @@ class ChatService:
         answer = self.chain.invoke({"question": request.question})
         sources = [
             {
-                "document_id": document.metadata.get("document_id"),
-                "baslik": document.metadata.get("baslik"),
-                "icerik_turu": document.metadata.get("icerik_turu"),
+                "product_id": document.metadata.get("product_id"),
+                "product_name": document.metadata.get("product_name"),
+                "source_type": document.metadata.get("source_type"),
+                "source_file": document.metadata.get("source_file"),
+                "section": document.metadata.get("h2")
+                or document.metadata.get("h1"),
             }
             for document in documents
         ]
