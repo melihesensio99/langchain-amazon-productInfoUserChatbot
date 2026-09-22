@@ -113,3 +113,38 @@ Chunk içeriğinin başına belge ve bölüm bağlamı eklendi:
 ```text
 score: 0.9394
 ```
+
+## Before / After - Ağırlık sorgusu
+
+### Sorgu
+
+```text
+iPhone 14'ün ağırlığı nedir
+```
+
+### Before - Breadcrumb olmadan
+
+```text
+Result 1: Genel iPhone 14 teknik özellikleri
+Result 2: Boyut ve ağırlıkla ilgili genel açıklama
+Result 3: Geri dönüştürülmüş malzemeler
+```
+
+Doğru teknik değer chunk'ı ilk üç sonuçta görünmüyordu. `Ağırlık: 172 gram` içeren chunk, doğal soruyla yeterince üst sıraya çıkamıyordu.
+
+### After - Breadcrumb ile
+
+Chunk'ın embedding'e giden metnine belge ve bölüm bağlamı eklendi:
+
+```text
+[Belge: Apple iPhone 14 | Bölüm: ... Ağırlık: 172 gram]
+```
+
+Sonuç:
+
+```text
+Result 1 | score=0.9394
+Genişlik: 71,5 mm ... Ağırlık: 172 gram
+```
+
+Değerlendirme: Breadcrumb, teknik değer chunk'ının doğal kullanıcı sorusuyla eşleşmesini iyileştirdi ve doğru chunk'ı üçüncü sıradan birinci sıraya taşıdı.
