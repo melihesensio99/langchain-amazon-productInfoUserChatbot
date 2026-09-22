@@ -94,8 +94,8 @@ Kalite filtresi `split_markdown_documents()` içine bağlandı. Qdrant collectio
 
 ```text
 Önce: 109 chunk
-Sonra: 108 chunk
-Çıkarılan: 1 boilerplate chunk
+Sonra: 94 chunk
+Çıkarılan: 15 heading-only chunk ve 1 boilerplate chunk
 ```
 
-Tekrar yapılan aynı sorguda footer sonucu artık dönmedi. Yeni üçüncü sonuç, footer yerine ürünün renk seçenekleri gibi gerçek ürün içeriği oldu.
+Tekrar yapılan aynı sorguda footer sonucu artık dönmedi. Yeni üçüncü sonuç, footer yerine ürünün renk seçenekleri gibi gerçek ürün içeriği oldu. Teknik değer taşıyan tek satırlı başlıklar, örneğin `Genişlik: 71,5 mm ... Ağırlık: 172 gram`, korunmuştur.

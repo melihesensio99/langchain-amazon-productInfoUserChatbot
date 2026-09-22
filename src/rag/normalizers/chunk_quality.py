@@ -24,8 +24,8 @@ class ChunkQualityReport:
     reasons: tuple[str, ...]
 
     @property
-    def is_boilerplate_candidate(self) -> bool:
-        return self.boilerplate_score >= 3
+    def should_filter(self) -> bool:
+        return self.boilerplate_score >= 3 or "heading_only" in self.reasons
 
 
 def analyze_chunk(document: Document) -> ChunkQualityReport:
@@ -51,7 +51,9 @@ def analyze_chunk(document: Document) -> ChunkQualityReport:
         score += 2
         reasons.append("navigation_language")
 
-    if text.startswith("#") and len(text.splitlines()) <= 1:
+    is_single_heading = text.startswith("#") and len(text.splitlines()) <= 1
+    contains_structured_value = ":" in text or any(char.isdigit() for char in text)
+    if is_single_heading and not contains_structured_value:
         score += 1
         reasons.append("heading_only")
 

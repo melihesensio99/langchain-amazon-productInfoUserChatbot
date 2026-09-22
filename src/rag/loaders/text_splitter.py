@@ -12,7 +12,7 @@ def get_text_splitter() -> RecursiveCharacterTextSplitter:
     )
 
 
-def split_markdown_documents(documents):
+def split_markdown_documents(documents, *, filter_quality: bool = True):
     header_splitter = MarkdownHeaderTextSplitter(
         headers_to_split_on=[
             ("#", "h1"),
@@ -28,8 +28,11 @@ def split_markdown_documents(documents):
         for chunk in header_chunks:
             chunk.metadata = {**document.metadata, **chunk.metadata}
         chunks.extend(recursive_splitter.split_documents(header_chunks))
+    if not filter_quality:
+        return chunks
+
     return [
         chunk
         for chunk in chunks
-        if not analyze_chunk(chunk).is_boilerplate_candidate
+        if not analyze_chunk(chunk).should_filter
     ]

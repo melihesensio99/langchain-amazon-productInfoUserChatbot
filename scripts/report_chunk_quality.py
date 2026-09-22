@@ -8,12 +8,12 @@ from src.rag.normalizers.chunk_quality import analyze_chunk
 
 def main() -> None:
     documents = load_processed_markdown(Path("data/processed"))
-    chunks = split_markdown_documents(documents)
+    chunks = split_markdown_documents(documents, filter_quality=False)
     candidates = []
 
     for index, chunk in enumerate(chunks, start=1):
         report = analyze_chunk(chunk)
-        if report.is_boilerplate_candidate:
+        if report.should_filter:
             candidates.append(
                 {
                     "chunk": index,
@@ -29,7 +29,7 @@ def main() -> None:
 
     print(f"Documents: {len(documents)}")
     print(f"Chunks: {len(chunks)}")
-    print(f"Boilerplate candidates: {len(candidates)}")
+    print(f"Quality filter candidates: {len(candidates)}")
 
     for candidate in candidates:
         print(json.dumps(candidate, ensure_ascii=False))
