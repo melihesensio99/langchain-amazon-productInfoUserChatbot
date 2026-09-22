@@ -89,3 +89,4 @@ Qdrant dashboard: <http://localhost:6333/dashboard>
 - `document_id`, dosya hash'i ve versiyonlama eklemek.
 - Büyük PDF işlemlerini background worker'a taşımak.
 - Parser, tablo ve ingestion kalite kontrollerini artırmak.
+- Gerekirse chunk'lar için sentetik kullanıcı soruları üretip reverse index oluşturmak.

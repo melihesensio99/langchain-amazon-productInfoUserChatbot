@@ -19,6 +19,16 @@ PDF → Docling → Markdown → frontmatter → loader → chunking → embeddi
 - [ ] Başarısız dosyaları ve tekrar denenebilir ingestion durumlarını kaydet.
 - [ ] Chunk sayısı, işlenen dosya ve hata özetini API response'unda raporla.
 
+## Gelecek retrieval iyileştirmesi: sentetik soru üretimi
+
+- [ ] Her anlamlı chunk için hafif bir modelle, chunk'ın cevaplayabileceği doğal kullanıcı sorularını üret.
+- [ ] Üretilen soruları `parent_chunk_id` ile orijinal chunk'a bağla.
+- [ ] Sentetik soruları orijinal chunk'la birlikte veya ayrı bir reverse index'te embed et.
+- [ ] Üretim öncesi soruların chunk içeriğiyle gerçekten desteklendiğini doğrula.
+- [ ] Semantic ve hybrid retrieval ile karşılaştırmalı Recall@K testi yap.
+
+Bu yöntem, kullanıcıların günlük konuşma diliyle sorduğu soruların teknik doküman chunk'larıyla eşleşmesini iyileştirebilir. Şimdilik uygulanmayacak; önce mevcut semantic retrieval ve keyword/hybrid retrieval baseline'ları ölçülecek.
+
 ## Mevcut durum
 
 - 2 Markdown dokümanı işleniyor.
