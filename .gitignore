@@ -8,5 +8,6 @@ __pycache__/
 qdrant_storage/
 chroma_db/
 .cache/
+data/indexes/
 .coverage
 *.log

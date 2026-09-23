@@ -198,3 +198,156 @@ Bu test üç problemi gösteriyor:
 Sonuç olarak yalnızca `top_k` ve skor eşiğini ayarlamak yeterli değildir. `kapasite`, `depolama` ve `GB` gibi kritik kelimeleri doğrudan dikkate alan keyword search, semantic sonuçlarla birleştirilmelidir.
 
 Bu test, hybrid search eklenmesi için retrieval katmanındaki somut kanıttır.
+
+## Test 3 - BM25 keyword retrieval
+
+BM25 prototipi `keyword_retriever.py` içinde oluşturuldu. Manuel test komutu:
+
+```powershell
+python -m scripts.search_keyword_chunks "iPhone 14 kapasite 128 GB" --top-k 3
+```
+
+### Teknik terimlerle başarılı sonuç
+
+İlk sonuç doğru kapasite chunk'ı oldu:
+
+```text
+Keyword Result 1 | score=24.8655
+h2: Kapasite
+128 GB
+256 GB
+512 GB
+```
+
+Diğer sonuçların skorları daha düşüktü:
+
+```text
+Keyword Result 2 | score=7.9604
+Keyword Result 3 | score=3.9377
+```
+
+Değerlendirme: **BM25, teknik terimler ve sayısal değerler doğrudan sorguda bulunduğunda doğru chunk'ı ilk sıraya taşıdı.**
+
+### Doğal dil sorgusu
+
+```powershell
+python -m scripts.search_keyword_chunks "iPhone 14 hangi depolama seçeneklerine sahip" --top-k 3
+```
+
+Sonuçlarda ilk sıraya kapasite chunk'ı yerine şu içerik geldi:
+
+```text
+Apple'ın kararlılığı hakkında bilgi edinin
+Depolama kapasitesi yazılım sürümüne, ayarlara ve iPhone modeline göre değişebilir.
+```
+
+Diğer sonuçlar da `Çip` ve `QuickType klavye desteği` bölümleriydi.
+
+Değerlendirme: **BM25 doğal dildeki anlam ilişkilerini kendiliğinden kuramıyor.** `depolama` kelimesi footer içeriğinde geçtiği için bu chunk yukarı çıktı; `Kapasite` başlığı ise sorguda birebir geçmediği için doğru chunk bulunamadı.
+
+### Keyword retrieval sonucu
+
+```text
+Teknik terim ve sayısal değer araması: Başarılı
+Doğal dil ve eş anlamlı ifade araması: Sınırlı
+Ana chatbot akışına doğrudan bağlama: Hazır EnsembleRetriever aşamasında yapıldı
+Manuel BM25 prototipi: Test/debug amacıyla korunuyor
+
+## Test 5 - LangChain hazır retriever bileşenleri
+
+Ana chatbot akışında özel `HybridRetriever` yerine LangChain'in hazır bileşenleri kullanıldı:
+
+```text
+Qdrant semantic retriever
++
+BM25Retriever
+→ EnsembleRetriever
+→ final top_k chunk
+```
+
+`product_retriever.py` artık bu hazır ensemble'ı döndürüyor. Test:
+
+```text
+iPhone 14 kapasite 128 GB
+```
+
+Sonuç: `Kapasite` chunk'ı ilk sırada geldi.
+
+Doğal dil testi:
+
+```text
+iPhone 14 hangi depolama seçeneklerine sahip
+```
+
+Sonuçlarda semantic ve BM25 bileşenleri birleşse de `Kapasite` chunk'ı ilk sıraya çıkmadı. Bu, hazır `EnsembleRetriever` kullanımının doğru olduğunu; ancak doğal dil eş anlamlılık probleminin ayrıca çözülmesi gerektiğini gösterir. Query expansion şu an özellikle eklenmemiştir.
+
+## Test 6 - Manuel hybrid ve hazır EnsembleRetriever karşılaştırması
+
+Aynı sorgu iki farklı akışla çalıştırıldı:
+
+```text
+iPhone 14 kapasite 128 GB
+```
+
+### Manuel hybrid
+
+```text
+1. Kapasite
+2. Apple'ın kararlılığı hakkında bilgi edinin
+3. Genişlik / Ağırlık
+4. TrueDepth Kamera
+5. iPhone ve Çevre
+```
+
+Manuel akış ayrıca kendi RRF skorunu gösterdi:
+
+```text
+Kapasite rrf_score: 0.032787
+```
+
+### Ana product retriever
+
+Ana akışta kullanılan hazır `BM25Retriever + EnsembleRetriever` aynı sorguda aynı sıra düzenini döndürdü:
+
+```text
+1. Kapasite
+2. Apple'ın kararlılığı hakkında bilgi edinin
+3. Genişlik / Ağırlık
+4. TrueDepth Kamera
+5. Çift kamera sistemi
+```
+
+Hazır ensemble sonuçları `Document` olarak döndürdüğü için ham RRF skorunu yazdırmadı.
+
+Değerlendirme: **Bu testte manuel hybrid ve LangChain'in hazır ensemble akışı aynı doğru ilk sonucu verdi.** Manuel uygulama debug ve skor inceleme için korunuyor; ana chatbot akışında hazır LangChain bileşenleri kullanılıyor.
+
+## Test 4 - Hybrid retrieval prototipi
+
+Hybrid retriever, semantic ve BM25 sonuçlarını ham skorları toplamadan, sonuç sıralarını kullanan Reciprocal Rank Fusion (RRF) ile birleştirir.
+
+Manuel test komutu:
+
+```powershell
+python -m scripts.search_hybrid_chunks "iPhone 14 kapasite 128 GB" --top-k 3 --candidate-k 10
+```
+
+Teknik terim içeren sorguda doğru sonuç ilk sıraya geldi:
+
+```text
+Hybrid Result 1
+h2: Kapasite
+128 GB
+256 GB
+512 GB
+```
+
+Doğal dil sorgusunda ise:
+
+```text
+iPhone 14 hangi depolama seçeneklerine sahip
+```
+
+`Kapasite` chunk'ı semantic sıralamada 66. sırada kaldı ve BM25 sorgusunda da `kapasite` kelimesi geçmediği için aday listesine giremedi. Bu nedenle hybrid sonuçlarda footer ve kamera chunk'ları üstte kaldı.
+
+Değerlendirme: **Hybrid altyapısı çalışıyor ve teknik terimlerde iyileştirme sağlıyor; doğal dildeki eş anlamlı ifadeler için query expansion veya daha iyi sparse/keyword sorgu üretimi ileride ayrıca değerlendirilecek.** Query expansion şu an uygulanmıyor.
+```

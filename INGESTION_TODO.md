@@ -8,9 +8,11 @@ PDF → Docling → Markdown → frontmatter → loader → chunking → embeddi
 
 ## Yapılacak iyileştirmeler
 
-- [ ] Aynı doküman tekrar işlendiğinde duplicate chunk oluşmasını engelle.
-- [ ] Her doküman için sabit `document_id` ve mümkünse dosya hash'i üret.
-- [ ] Qdrant'a yazmadan önce mevcut `document_id` ile eski chunk'ları temizle veya güncelle.
+- [x] Aynı doküman tekrar işlendiğinde duplicate chunk oluşmasını engelle.
+- [x] Her chunk için deterministik ID üret.
+- [x] Qdrant'a yazmadan önce mevcut ID'lerle eski chunk'ları temizle veya güncelle.
+- [x] Chunk sınırları PDF güncellemesiyle kaydığında stale chunk'ları temizleyip güvenli full sync yap.
+- [x] BM25 index'ini ingestion sırasında oluşturup `data/indexes/` altında kaydet.
 - [ ] Boş, çok kısa ve anlamsız başlık-only chunk'larını filtrele.
 - [ ] Büyük PDF işlemlerini API request'inden ayırıp background job/worker kullan.
 - [ ] Ingestion başlangıç, başarı ve hata loglarını ekle.

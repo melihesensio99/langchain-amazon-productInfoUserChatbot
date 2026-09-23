@@ -11,5 +11,6 @@ langchain-huggingface
 langchain-qdrant
 qdrant-client
 sentence-transformers
+rank-bm25
 docling
 python-multipart

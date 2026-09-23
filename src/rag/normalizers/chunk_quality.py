@@ -17,6 +17,8 @@ _NAVIGATION_TERMS = (
 
 
 @dataclass(frozen=True)
+# PROJEYE ÖZEL RAPOR SINIFI: Chunk kalite ölçümlerini ve filtreleme kararını
+# taşır.
 class ChunkQualityReport:
     """Bir chunk'ın kalite ölçümlerini ve filtreleme kararını taşır."""
 
