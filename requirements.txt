@@ -13,4 +13,5 @@ qdrant-client
 sentence-transformers
 rank-bm25
 docling
+PyYAML
 python-multipart

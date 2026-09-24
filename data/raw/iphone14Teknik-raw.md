@@ -1,22 +1,12 @@
----
-product_id: "IPHONE-14"
-product_name: "Apple iPhone 14"
-source_type: "technical_specs"
-source_file: "iPhone 14 - Teknik Özellikler - Apple Destek (TR).pdf"
-source_date: "2026-09-21"
----
-
-# Apple iPhone 14
-
 ## Renk Seçenekleri
 
 Ceramic Shield ön yüzey, Cam arka yüzey ve alüminyum tasarım Gece Yarısı Mor Yıldız Işığı (PRODUCT) RED Mavi Sarı
 
-## Kapasite
+## Kapasite 1
 
 128 GB 256 GB 512 GB
 
-## Boyut ve Ağırlık
+## Boyut ve Ağırlık 2
 
 ## Genişlik: 71,5 mm Uzunluk: 146,7 mm Derinlik: 7 ,80 mm Ağırlık: 172 gram
 
@@ -24,13 +14,15 @@ Ceramic Shield ön yüzey, Cam arka yüzey ve alüminyum tasarım Gece Yarısı 
 
 Super Retina XDR ekran 6.1 inç (diyagonal) tam ekran OLED 460 ppi yoğunlukta 2532 x 1170 piksel çözünürlük HDR ekran True Tone Geniş renk yelpazesi (P3)
 
+<!-- image -->
+
 ## iPhone 14 - Teknik Özellikler
 
 Piyasaya çıkış yılı: 2022
 
 iPhone modelinizi belirleme iPhone 14'ün ekranı yuvarlatılmış köşelere sahiptir. Telefonun kıvrımlı zarif tasarımını takip eden bu köşeler, standart bir dikdörtgenin sınırları içinde yer alır. Standart bir dikdörtgen olarak ölçüldüğünde ekran diyagonal olarak 6.06 inçtir (görüntülenebilen gerçek alan daha azdır). Haptic Touch 2.000.000:1 kontrast oranı (tipik) 800 nit maksimum ekran parlaklığı (tipik); 1200 nit maksimum piksel parlaklığı (HDR) Parmak izine dayanıklı, yağ tutmayan kaplama Birden fazla dil ve karakteri aynı anda görüntüleme desteği
 
-## Suya, Sıçramalara ve Toza Dayanıklılık
+## Suya, Sıçramalara ve Toza Dayanıklılık 3
 
 60529 sayılı IEC standardı kapsamında IP68 derecesi (30 dakikaya kadar maksimum 6 metre derinlik)
 
@@ -96,7 +88,7 @@ GPS, GLONASS, Galileo, QZSS ve BeiDou
 
 Dijital pusula Wi-Fi Cellular iBeacon ile mikro lokasyon
 
-## Görüntülü Arama
+## Görüntülü Arama 7
 
 Hücresel ağ veya Wi-Fi üzerinden FaceTime görüntülü arama
 
@@ -114,7 +106,7 @@ Ses İzolasyonu ve Geniş Spektrum mikrofon modları
 
 Arka kamera ile zoom
 
-## Sesli Arama
+## Sesli Arama 7
 
 FaceTime sesli arama
 
@@ -140,23 +132,25 @@ Kullanıcı tarafından yapılandırılabilen maksimum ses düzeyi sınırı
 
 ## Video Oynatma
 
-Desteklenen biçimler arasında HEVC, H.264 ve ProRes yer alır
+Desteklenen biçimler arasında HEVC, H.264 ve ProRes yer alır
 
-Dolby Vision, HDR10+/HDR10 ve HLG dahil olmak üzere HDR desteği
+Dolby Vision, HDR10+/HDR10 ve HLG dahil olmak üzere HDR desteği
 
-Apple TV'ye (2. nesil veya daha yeni model) veya AirPlay özellikli akıllı televizyonlara 4K HDR kalitesine kadar AirPlay yansıtma, fotoğraf ve video çıkışı
+Apple TV'ye (2. nesil veya daha yeni model) veya AirPlay özellikli akıllı televizyonlara 4K HDR kalitesine kadar AirPlay yansıtma, fotoğraf ve video çıkışı
 
-Video yansıtma ve video çıkışı desteği: Lightning Dijital AV Adaptörü ve Lightning - VGA Adaptörü ile 1080p'ye kadar (adaptörler ayrı satılır) 8
+Video yansıtma ve video çıkışı desteği: Lightning Dijital AV Adaptörü ve Lightning - VGA Adaptörü ile 1080p'ye kadar (adaptörler ayrı satılır) 8
 
-## Siri
+## Siri 9
 
-Mesaj göndermek ve anımsatıcı ayarlamak gibi günlük işleriniz için yardım alın
+Mesaj göndermek ve anımsatıcı ayarlamak gibi günlük işleriniz için yardım alın
 
-'Hey Siri' özelliğiyle, ellerinizi kullanmadan sadece sesinizle etkinleştirin Bir akıllı asistanın sunduğu en güçlü gizlilik özelliklerinden yararlanın
+'Hey Siri' özelliğiyle, ellerinizi kullanmadan sadece sesinizle etkinleştirin Bir akıllı asistanın sunduğu en güçlü gizlilik özelliklerinden yararlanın
 
 [Siri hakkında daha fazla bilgi edinin](https://apple.com/tr/siri/)
 
 ## Harici Düğmeler ve Konnektörler
+
+<!-- image -->
 
 1. Ön kamera
 2. Yan düğme
@@ -167,7 +161,7 @@ Mesaj göndermek ve anımsatıcı ayarlamak gibi günlük işleriniz için yard�
 
 ## Güç ve Pil 10
 
-Video oynatma: 20 saate kadar Online video oynatma: 16 saate kadar Ses çalma: 80 saate kadar Şarj edilebilir yerleşik lityum iyon pil 15 W'a kadar MagSafe özellikli kablosuz şarj 12 7,5 W'a kadar Qi özellikli kablosuz şarj 12 Hızlı şarj özelliği: 20 W veya daha güçlü bir adaptör USB-C şarj kablosuyla eşleştirildiğinde yaklaşık 30 dakikada %50'ye kadar şarj (adaptör ayrı satılır) 11
+Video oynatma: 20 saate kadar Online video oynatma: 16 saate kadar Ses çalma: 80 saate kadar Şarj edilebilir yerleşik lityum iyon pil 15 W'a kadar MagSafe özellikli kablosuz şarj 12 7,5 W'a kadar Qi özellikli kablosuz şarj 12 Hızlı şarj özelliği: 20 W veya daha güçlü bir adaptör USB-C şarj kablosuyla eşleştirildiğinde yaklaşık 30 dakikada %50'ye kadar şarj (adaptör ayrı satılır) 11
 
 ## MagSafe
 
@@ -401,7 +395,7 @@ Almanca (Almanya, Avusturya, İsviçre), Arapça, Arapça (Necdi), Bulgarca, Çe
 
 iPhone 14 ve iPhone 14 Plus, çevre üzerindeki etkilerini azaltmak için aşağıdaki özelliklerle tasarlanmıştır: 15
 
-[iPhone 14 ve iPhone 14 Plus Ürün Çevre Raporu'nu görüntüleyin (PDF)](https://www.apple.com/tr/environment/pdf/products/iphone/iPhone_14_and_iPhone_14_Plus_PER_Sept2022.pdf)
+[iPhone 14 ve iPhone 14 Plus Ürün Çevre Raporu'nu görüntüleyin (PDF)](https://www.apple.com/tr/environment/pdf/products/iphone/iPhone_14_and_iPhone_14_Plus_PER_Sept2022.pdf)
 
 ## Daha iyi malzemelerle üretilir
 
@@ -443,31 +437,35 @@ Tüm ürünlerimizi gezegenimizdeki kaynakları tüketmeden üretmek ve 2030 yı
 
 * iPhone model numaranızı belirlemek için lütfen support.apple.com/tr-tr/HT3939 sayfasını ziyaret edin. 5G ve LTE desteği hakkında daha fazla bilgi için lütfen iletişim operatörünüze danışın ve apple.com/tr/iphone/cellular sayfasını inceleyin. Cellular teknolojisi desteği, iPhone model numarasına ve iPhone'un GSM şebekeleri için yapılandırılma durumuna göre değişir.
 
-1. Kullanılabilir alan daha azdır ve birçok faktöre bağlı olarak değişir. Standart bir yapılandırma, en yeni özellikleriyle iOS 18 ve silinebilen Apple uygulamaları dahil olmak üzere yaklaşık 12 GB ile 17 GB arası alan kullanır. Silinebilen Apple uygulamaları yaklaşık 4.5 GB alan kullanır ve bu uygulamaları App Store'dan yeniden indirebilirsiniz. Depolama kapasitesi yazılım sürümüne, ayarlara ve iPhone modeline göre değişebilir.
-2. Boyut ve ağırlık, yapılandırmaya ve üretim sürecine göre değişir.
-3. iPhone 14 ve iPhone 14 Plus suya, sıçramalara ve toza dayanıklıdır. Aygıtlar kontrollü laboratuvar koşullarında test edilmiş ve 60529 sayılı IEC standardı kapsamında IP68 derecesini (30 dakikaya kadar maksimum 6 metre derinlik) elde etmiştir. Suya, sıçramalara ve toza dayanıklılık kalıcı değildir ve normal kullanıma bağlı yıpranma sonucunda azalabilir. Islak bir iPhone'u şarj etmeye çalışmayın. Temizleme ve kurulama yönergeleri için lütfen kullanım kılavuzunu inceleyin. Sıvı temasına bağlı hasarlar garanti kapsamında değildir.
-4. iPhone 14 ve iPhone 14 Pro, ciddi bir araba kazası geçirirseniz bunu algılayarak yardım çağırabilme özelliğine sahiptir. Hücresel bağlantı veya Wi-Fi ile Arama özelliği gerekir.
-5. Veri tarifesi gerekir. 5G, Gigabit LTE, 4G LTE Advanced, 4G LTE, VoLTE ve Wi-Fi üzerinden arama özelliği sadece belirli pazarlarda ve belirli iletişim operatörleri tarafından sunulur. Belirtilen hızlar teorik değerlere dayalıdır ve bulunulan konuma ve iletişim operatörüne göre değişir. 5G ve LTE desteği hakkında daha fazla bilgi için lütfen iletişim operatörünüze danışın ve apple.com/tr/iphone/cellular sayfasını inceleyin.
-6. Ultra Geniş Bant her bölgede kullanılamayabilir.
-7. FaceTime arama özelliği için, arayanın ve arananın FaceTime özellikli bir aygıta ve Wi-Fi bağlantısına sahip olması gerekir. Bu özelliğin hücresel ağ üzerinden kullanılabilmesi, iletişim operatörünün politikalarına bağlıdır; veri ücretleri uygulanabilir.
-8. Sadece standart dinamik aralık biçimindeki video içerikleri için geçerlidir.
-9. Siri her dilde veya bölgede kullanılamayabilir ve özellikler bölgeye göre değişebilir. İnternet erişimi gerekir. Hücresel veri ücretleri uygulanabilir.
-10. Pille ilgili tüm veriler ağ yapılandırmasına ve daha birçok etkene bağlıdır; gerçek sonuçlar farklılık gösterir. Pillerin ömrü belirli sayıda şarj döngüsüyle sınırlıdır ve bu pillerin zaman içinde değiştirilmeleri gerekebilir. Pil ömrü ve şarj döngüsü sayısı kullanıma ve ayarlara göre değişir. Daha fazla bilgi için lütfen apple.com/tr/batteries ve apple.com/tr/iphone/battery.html sayfalarını inceleyin.
-11. Testler Apple tarafından Ağustos 2022'de, ön üretim iPhone 14 ve iPhone 14 Plus üniteleri ve yazılımları ile Apple USB-C Güç Adaptörü (20 W Model A2305) kullanılarak gerçekleştirilmiştir. Hızlı şarj testi, şarjı bitmiş iPhone üniteleri kullanılarak gerçekleştirilmiştir. Şarj süresi ayarlara ve çevresel etkenlere göre değişir; gerçek sonuçlar farklılık gösterir.
+1. Kullanılabilir alan daha azdır ve birçok faktöre bağlı olarak değişir. Standart bir yapılandırma, en yeni özellikleriyle iOS 18 ve silinebilen Apple uygulamaları dahil olmak üzere yaklaşık 12 GB ile 17 GB arası alan kullanır. Silinebilen Apple uygulamaları yaklaşık 4.5 GB alan kullanır ve bu uygulamaları App Store'dan yeniden indirebilirsiniz. Depolama kapasitesi yazılım sürümüne, ayarlara ve iPhone modeline göre değişebilir.
+2. Boyut ve ağırlık, yapılandırmaya ve üretim sürecine göre değişir.
+3. iPhone 14 ve iPhone 14 Plus suya, sıçramalara ve toza dayanıklıdır. Aygıtlar kontrollü laboratuvar koşullarında test edilmiş ve 60529 sayılı IEC standardı kapsamında IP68 derecesini (30 dakikaya kadar maksimum 6 metre derinlik) elde etmiştir. Suya, sıçramalara ve toza dayanıklılık kalıcı değildir ve normal kullanıma bağlı yıpranma sonucunda azalabilir. Islak bir iPhone'u şarj etmeye çalışmayın. Temizleme ve kurulama yönergeleri için lütfen kullanım kılavuzunu inceleyin. Sıvı temasına bağlı hasarlar garanti kapsamında değildir.
+4. iPhone 14 ve iPhone 14 Pro, ciddi bir araba kazası geçirirseniz bunu algılayarak yardım çağırabilme özelliğine sahiptir. Hücresel bağlantı veya Wi-Fi ile Arama özelliği gerekir.
+5. Veri tarifesi gerekir. 5G, Gigabit LTE, 4G LTE Advanced, 4G LTE, VoLTE ve Wi-Fi üzerinden arama özelliği sadece belirli pazarlarda ve belirli iletişim operatörleri tarafından sunulur. Belirtilen hızlar teorik değerlere dayalıdır ve bulunulan konuma ve iletişim operatörüne göre değişir. 5G ve LTE desteği hakkında daha fazla bilgi için lütfen iletişim operatörünüze danışın ve apple.com/tr/iphone/cellular sayfasını inceleyin.
+6. Ultra Geniş Bant her bölgede kullanılamayabilir.
+7. FaceTime arama özelliği için, arayanın ve arananın FaceTime özellikli bir aygıta ve Wi-Fi bağlantısına sahip olması gerekir. Bu özelliğin hücresel ağ üzerinden kullanılabilmesi, iletişim operatörünün politikalarına bağlıdır; veri ücretleri uygulanabilir.
+8. Sadece standart dinamik aralık biçimindeki video içerikleri için geçerlidir.
+9. Siri her dilde veya bölgede kullanılamayabilir ve özellikler bölgeye göre değişebilir. İnternet erişimi gerekir. Hücresel veri ücretleri uygulanabilir.
+10. Pille ilgili tüm veriler ağ yapılandırmasına ve daha birçok etkene bağlıdır; gerçek sonuçlar farklılık gösterir. Pillerin ömrü belirli sayıda şarj döngüsüyle sınırlıdır ve bu pillerin zaman içinde değiştirilmeleri gerekebilir. Pil ömrü ve şarj döngüsü sayısı kullanıma ve ayarlara göre değişir. Daha fazla bilgi için lütfen apple.com/tr/batteries ve apple.com/tr/iphone/battery.html sayfalarını inceleyin.
+11. Testler Apple tarafından Ağustos 2022'de, ön üretim iPhone 14 ve iPhone 14 Plus üniteleri ve yazılımları ile Apple USB-C Güç Adaptörü (20 W Model A2305) kullanılarak gerçekleştirilmiştir. Hızlı şarj testi, şarjı bitmiş iPhone üniteleri kullanılarak gerçekleştirilmiştir. Şarj süresi ayarlara ve çevresel etkenlere göre değişir; gerçek sonuçlar farklılık gösterir.
 12. Kablosuz şarj aygıtları ayrı satılır.
-13. eSIM'i kullanabilmek için kablosuz servis tarifesi gerekir (bu tarife, sözleşmenin sona ermesinden sonra bile, servis sağlayıcısı değiştirme ve uluslararası dolaşım kısıtlamalarına tabi olabilir). Her iletişim operatörü eSIM'i desteklemeyebilir. eSIM bazı iletişim operatörlerinden satın alındığında iPhone'da kullanılamayabilir. Ayrıntılar için lütfen iletişim operatörünüze danışın. Daha fazla bilgi için lütfen apple.com/tr/esimsayfasını ziyaret edin.
+13. eSIM'i kullanabilmek için kablosuz servis tarifesi gerekir (bu tarife, sözleşmenin sona ermesinden sonra bile, servis sağlayıcısı değiştirme ve uluslararası dolaşım kısıtlamalarına tabi olabilir). Her iletişim operatörü eSIM'i desteklemeyebilir. eSIM bazı iletişim operatörlerinden satın alındığında iPhone'da kullanılamayabilir. Ayrıntılar için lütfen iletişim operatörünüze danışın. Daha fazla bilgi için lütfen apple.com/tr/esimsayfasını ziyaret edin.
 14. Kablosuz geniş bant önerilir; ücret uygulanabilir.
 15. Veriler, ürünün lansman tarihi itibarıyla geçerlidir.
-16. Taptic Engine'ın dışında eser miktarda bulunan tungsten hariçtir. Bu miktar, aygıtın içindeki toplam miktarın %0,1'inden azdır.
-17. Mıknatısların dışındaki eser miktarda nadir bulunan toprak elementleri hariçtir. Bu miktar, aygıtın içindeki toplam miktarın %0,2'sinden azdır.
+16. Taptic Engine'ın dışında eser miktarda bulunan tungsten hariçtir. Bu miktar, aygıtın içindeki toplam miktarın %0,1'inden azdır.
+17. Mıknatısların dışındaki eser miktarda nadir bulunan toprak elementleri hariçtir. Bu miktar, aygıtın içindeki toplam miktarın %0,2'sinden azdır.
 18. Verimlilik performansı, ABD Enerji Bakanlığı'nın Pil Şarj Aygıtları İçin Federal Enerji Tasarrufu Standartları'na dayalıdır.
-19. Apple'ın Düzenlemeye Tabi Maddeler Şartnamesi, Apple ürünlerinde, aksesuarlarında, üretim süreçlerinde ve ürünleri Apple'ın son kullanıcılarına gönderirken kullanılan ambalajlarda bulunan malzemelerdeki belirli kimyasal maddelere ilişkin sınırlandırmaları tanımlamaktadır. Sınırlandırmalar uluslararası yasalar veya yönergeler, düzenleyici kurumlar, eko etiket gereksinimleri, çevresel standartlar ve Apple politikaları dikkate alınarak belirlenmiştir. PVC ve ftalatlar yerine kullanacağımız malzemeler için resmi onay beklediğimiz Hindistan, Tayland (iki uçlu AC güç kabloları) ve Güney Kore'deki AC güç kabloları dışında hiçbir Apple ürünü PVC ve ftalat içermez. Apple ürünleri, yüksek sıcaklıkta lehimleme gibi kurşun kullanımına ilişkin muafiyetler dahil olmak üzere, 2011/65/EU sayılı Avrupa Birliği Direktifi'ne ve bu direktifte yapılan düzeltmelere uygundur. Apple, teknik olarak mümkün olan yerlerde, muaf tutulmuş bu maddelerin yeni ürünlerde kullanımını aşamalı olarak kaldırmaya çalışıyor.
+19. Apple'ın Düzenlemeye Tabi Maddeler Şartnamesi, Apple ürünlerinde, aksesuarlarında, üretim süreçlerinde ve ürünleri Apple'ın son kullanıcılarına gönderirken kullanılan ambalajlarda bulunan malzemelerdeki belirli kimyasal maddelere ilişkin sınırlandırmaları tanımlamaktadır. Sınırlandırmalar uluslararası yasalar veya yönergeler, düzenleyici kurumlar, eko etiket gereksinimleri, çevresel standartlar ve Apple politikaları dikkate alınarak belirlenmiştir. PVC ve ftalatlar yerine kullanacağımız malzemeler için resmi onay beklediğimiz Hindistan, Tayland (iki uçlu AC güç kabloları) ve Güney Kore'deki AC güç kabloları dışında hiçbir Apple ürünü PVC ve ftalat içermez. Apple ürünleri, yüksek sıcaklıkta lehimleme gibi kurşun kullanımına ilişkin muafiyetler dahil olmak üzere, 2011/65/EU sayılı Avrupa Birliği Direktifi'ne ve bu direktifte yapılan düzeltmelere uygundur. Apple, teknik olarak mümkün olan yerlerde, muaf tutulmuş bu maddelerin yeni ürünlerde kullanımını aşamalı olarak kaldırmaya çalışıyor.
 
 Bazı özellikler her ülkede veya her bölgede kullanılamayabilir. Listenin tamamını görüntüleyin.
 
 [](https://www.apple.com/tr/)
 
 Yararlı buldunuz mu?
+
+<!-- image -->
+
+<!-- image -->
 
 Destek iPhone 14 - Teknik Özellikler Kullanım Şartları
 

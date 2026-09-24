@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from langchain_core.documents import Document
+from src.rag.normalizers.markdown_cleaner import clean_docling_markdown
 
 
 def _parse_frontmatter(raw_text: str) -> tuple[dict[str, str], str]:
@@ -27,7 +28,10 @@ def load_markdown_document(markdown_path: str | Path) -> Document:
     metadata, content = _parse_frontmatter(raw_text)
     metadata.setdefault("source_file", path.name)
     metadata.setdefault("source_type", "markdown")
-    return Document(page_content=content, metadata=metadata)
+    # Processed dosya daha önce üretilmiş olsa bile ingestion sırasında aynı
+    # genel Markdown temizliği tekrar uygulanır; eski parser artıkları indekse
+    # sızmaz.
+    return Document(page_content=clean_docling_markdown(content), metadata=metadata)
 
 
 def load_processed_markdown(directory: str | Path) -> list[Document]:

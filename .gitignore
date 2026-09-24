@@ -9,5 +9,6 @@ qdrant_storage/
 chroma_db/
 .cache/
 data/indexes/
+data/document_manifest.yaml
 .coverage
 *.log

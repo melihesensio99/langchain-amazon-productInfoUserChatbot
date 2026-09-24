@@ -7,13 +7,15 @@ class ChatService:
     """Retrieval ve QA chain'i kullanarak ürün sorularını cevaplar."""
 
     def __init__(self) -> None:
-        # Retriever ilgili chunk'ları, chain ise cevabı üretir.
-        self.retriever = get_product_retriever()
-        self.chain = build_qa_chain(self.retriever)
+        # LLM cache'lenir; retriever product_id'ye göre istek içinde seçilir.
+        pass
 
     def answer(self, request: ChatRequest) -> ChatResponse:
-        documents = self.retriever.invoke(request.question)
-        answer = self.chain.invoke({"question": request.question})
+        # Ürün sayfasından gelen ID varsa semantic ve keyword aramayı sınırlar.
+        retriever = get_product_retriever(request.product_id)
+        chain = build_qa_chain(retriever)
+        documents = retriever.invoke(request.question)
+        answer = chain.invoke({"question": request.question})
         sources = [
             {
                 "product_id": document.metadata.get("product_id"),

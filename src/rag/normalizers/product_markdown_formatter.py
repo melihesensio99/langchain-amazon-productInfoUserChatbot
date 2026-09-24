@@ -15,23 +15,29 @@ def format_product_markdown(
     source_type: str,
     source_file: str,
     source_date: str | None = None,
+    extra_metadata: dict[str, str] | None = None,
 ) -> str:
-    """Wrap Docling Markdown in the project's stable product-document format."""
+    """Wrap Docling Markdown in the stable product-document format."""
     cleaned = clean_docling_markdown(raw_markdown)
     if not cleaned:
         raise ValueError("Docling boş Markdown çıktısı üretti.")
 
     effective_date = source_date or date.today().isoformat()
+    metadata = dict(extra_metadata or {})
+    # Temel kimlik alanları formatter tarafından kanonik olarak belirlenir.
+    metadata.update(
+        {
+            "product_id": product_id,
+            "product_name": product_name,
+            "source_type": source_type,
+            "source_file": source_file,
+            "source_date": effective_date,
+        }
+    )
     frontmatter = "\n".join(
-        [
-            "---",
-            f"product_id: {_yaml_value(product_id)}",
-            f"product_name: {_yaml_value(product_name)}",
-            f"source_type: {_yaml_value(source_type)}",
-            f"source_file: {_yaml_value(source_file)}",
-            f"source_date: {_yaml_value(effective_date)}",
-            "---",
-        ]
+        ["---"]
+        + [f"{key}: {_yaml_value(str(value))}" for key, value in metadata.items()]
+        + ["---"]
     )
 
     title = f"# {product_name}"

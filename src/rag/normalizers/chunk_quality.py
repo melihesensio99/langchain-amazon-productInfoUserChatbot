@@ -14,6 +14,7 @@ _NAVIGATION_TERMS = (
     "terms of use",
     "sitemap",
 )
+_TOC_DOT_LEADER = re.compile(r"(?:\.{5,}|…{3,})")
 
 
 @dataclass(frozen=True)
@@ -64,13 +65,23 @@ def analyze_chunk(document: Document) -> ChunkQualityReport:
         score += 2
         reasons.append("navigation_language")
 
+    # Bazı parser çıktılarında TOC bloğu başlıksız kalabilir. Nokta çizgileri
+    # ve sayfa numaraları birlikte görünüyorsa bu chunk gezinme verisidir.
+    dot_leaders = len(_TOC_DOT_LEADER.findall(analysis_text))
+    if dot_leaders >= 2:
+        score += 3
+        reasons.append("table_of_contents_like")
+
+    has_table = "|" in analysis_text
+    has_structured_value = ":" in analysis_text or any(
+        char.isdigit() for char in analysis_text
+    )
+
     is_single_heading = (
         analysis_text.startswith("#")
         and len(analysis_text.splitlines()) <= 1
     )
-    contains_structured_value = ":" in analysis_text or any(
-        char.isdigit() for char in analysis_text
-    )
+    contains_structured_value = has_structured_value
     if is_single_heading and not contains_structured_value:
         # Sadece başlık olan chunk embedding için anlamlı içerik taşımaz.
         score += 1

@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     top_k: int = 5
     # Bu skorun altındaki zayıf benzerlik sonuçları retrieval'dan elenir.
     retrieval_score_threshold: float = 0.82
+    # Semantic ve BM25 kollarının her birinden alınacak aday sayısı.
+    hybrid_branch_k: int = 15
+    # İki kol birleştirildikten sonra reranker'a gönderilecek toplam aday.
+    reranker_candidate_k: int = 30
+    # Türkçe sorgu ve teknik ürün metinleri için çok dilli CrossEncoder.
+    reranker_model: str = "BAAI/bge-reranker-v2-m3"
+    reranker_max_length: int = 512
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

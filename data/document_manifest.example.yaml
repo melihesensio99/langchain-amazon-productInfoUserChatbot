@@ -1,0 +1,22 @@
+# Hazır PDF'leri ürün ve belge türüyle eşleştiren örnek manifest.
+# Kopyalayıp data/document_manifest.yaml olarak kullanın.
+source_dir: "C:/path/to/ragDenemeKlasoru"
+output_dir: "data/processed"
+raw_dir: "data/raw"
+
+documents:
+  - file: "zfold8Teknik.pdf"
+    output: "samsung-z-fold-8-technical-specs.md"
+    raw_output: "samsung-z-fold-8-technical-specs-raw.md"
+    product_id: "SAMSUNG-Z-FOLD-8"
+    product_name: "Samsung Galaxy Z Fold 8"
+    brand: "Samsung"
+    source_type: "technical_specs"
+
+  - file: "zfold8Kullanım.pdf"
+    output: "samsung-z-fold-8-user-manual.md"
+    raw_output: "samsung-z-fold-8-user-manual-raw.md"
+    product_id: "SAMSUNG-Z-FOLD-8"
+    product_name: "Samsung Galaxy Z Fold 8"
+    brand: "Samsung"
+    source_type: "user_manual"

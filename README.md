@@ -55,16 +55,24 @@ Qdrant'ı Docker ile başlatın:
 docker compose up -d qdrant
 ```
 
-## PDF'i Markdown'a dönüştürme
+## PDF'leri Markdown'a dönüştürme
+
+Birden fazla hazır PDF için `data/document_manifest.yaml` kullanılır.
+Manifest, aynı ürüne ait teknik özellik ve kullanım kılavuzu gibi ayrı PDF'leri
+aynı `product_id` altında toplar; `brand` ve `source_type` gibi alanları da
+frontmatter metadata'sına taşır.
 
 ```powershell
-.venv\Scripts\python.exe scripts\convert_pdf_to_markdown.py `
-  "input.pdf" `
-  "data\processed\product.md" `
-  --product-id "PRODUCT-001" `
-  --product-name "Product Name" `
-  --source-type "technical_specs" `
-  --raw-output "data\raw\product-raw.md"
+Copy-Item data\document_manifest.example.yaml data\document_manifest.yaml
+# source_dir ve documents alanlarını kendi PDF'lerinize göre düzenleyin.
+.venv\Scripts\python.exe -m scripts.convert_manifest data\document_manifest.yaml
+```
+
+Ham Markdown zaten oluşturulduysa Docling'i tekrar çalıştırmadan yalnızca
+manifest metadata'sını uygulayabilirsiniz:
+
+```powershell
+.venv\Scripts\python.exe -m scripts.apply_manifest_metadata data\document_manifest.yaml
 ```
 
 ## Chunk'ları kontrol etme
@@ -80,6 +88,21 @@ docker compose up -d qdrant
 ```
 
 Qdrant dashboard: <http://localhost:6333/dashboard>
+
+## Ürün sayfası chatbot isteği
+
+Frontend seçili ürünün ID'sini gönderirse semantic ve BM25 retrieval aynı ürünle
+sınırlandırılır:
+
+```json
+POST /api/v1/chat
+{
+  "question": "Kaç gram?",
+  "product_id": "APPLE-IPHONE-14"
+}
+```
+
+`product_id` gönderilmezse genel katalog araması yapılır.
 
 ## Yol haritası
 
