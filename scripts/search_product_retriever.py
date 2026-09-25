@@ -8,10 +8,21 @@ def main() -> None:
         description="Search with the production product retriever flow."
     )
     parser.add_argument("query", help="User question or search query")
+    parser.add_argument(
+        "--product-id",
+        default="SECUREHOME-SHL-500",
+        help="Product payload filter; defaults to the current test product.",
+    )
+    parser.add_argument(
+        "--all-products",
+        action="store_true",
+        help="Disable the default product filter and search all products.",
+    )
     args = parser.parse_args()
 
     # Bu script, chatbotun ana product_retriever akışını test eder.
-    retriever = get_product_retriever()
+    product_id = None if args.all_products else args.product_id
+    retriever = get_product_retriever(product_id)
     documents = retriever.invoke(args.query)
 
     if not documents:

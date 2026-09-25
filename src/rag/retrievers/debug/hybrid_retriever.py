@@ -54,7 +54,12 @@ def search_hybrid_chunks(
                 product_id=product_id,
                 source_type=source_type,
             ),
-            search_keyword_chunks(query, top_k=candidate_k),
+            search_keyword_chunks(
+                query,
+                top_k=candidate_k,
+                product_id=product_id,
+                source_type=source_type,
+            ),
         ],
         top_k=top_k,
     )

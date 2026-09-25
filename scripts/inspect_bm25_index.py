@@ -12,6 +12,12 @@ def main() -> None:
         "query",
         help="Query to inspect",
     )
+    parser.add_argument(
+        "--term",
+        action="append",
+        dest="terms",
+        help="Term to inspect; repeat the option for multiple terms.",
+    )
     args = parser.parse_args()
 
     retriever = load_bm25_retriever()
@@ -24,7 +30,8 @@ def main() -> None:
     print(f"Average chunk length: {vectorizer.avgdl:.2f} tokens")
 
     print("\n=== TERM -> CHUNK LINKS ===")
-    for term in ("kapasite", "128", "gb", "kamera"):
+    terms = args.terms or ["vida", "42", "54", "usb-c", "backset"]
+    for term in terms:
         matching_indexes = [
             index
             for index, frequencies in enumerate(vectorizer.doc_freqs)

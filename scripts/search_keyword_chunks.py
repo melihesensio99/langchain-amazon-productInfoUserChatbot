@@ -9,9 +9,16 @@ def main() -> None:
     )
     parser.add_argument("query", help="User question or keyword query")
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--product-id")
+    parser.add_argument("--source-type")
     args = parser.parse_args()
 
-    results = search_keyword_chunks(args.query, top_k=args.top_k)
+    results = search_keyword_chunks(
+        args.query,
+        top_k=args.top_k,
+        product_id=args.product_id,
+        source_type=args.source_type,
+    )
     if not results:
         print("Keyword sonucu bulunamadı.")
         return

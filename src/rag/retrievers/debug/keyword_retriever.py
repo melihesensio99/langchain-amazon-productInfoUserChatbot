@@ -22,13 +22,33 @@ def _get_keyword_index() -> tuple[BM25Okapi, tuple[Document, ...]]:
     return BM25Okapi([_tokenize(chunk.page_content) for chunk in chunks]), tuple(chunks)
 
 
-def search_keyword_chunks(query: str, *, top_k: int = 5) -> list[tuple[Document, float]]:
+def search_keyword_chunks(
+    query: str,
+    *,
+    top_k: int = 5,
+    product_id: str | None = None,
+    source_type: str | None = None,
+) -> list[tuple[Document, float]]:
     """Debug için manuel BM25 sonuçlarını skorlarıyla döndürür."""
     bm25, chunks = _get_keyword_index()
     scores = bm25.get_scores(_tokenize(query))
     ranked = sorted(range(len(chunks)), key=lambda index: scores[index], reverse=True)
+
+    def matches(document: Document) -> bool:
+        return (
+            (not product_id or document.metadata.get("product_id") == product_id)
+            and (
+                not source_type
+                or document.metadata.get("source_type") == source_type
+            )
+        )
+
+    filtered = [
+        index
+        for index in ranked
+        if scores[index] > 0 and matches(chunks[index])
+    ]
     return [
         (chunks[index], float(scores[index]))
-        for index in ranked[:top_k]
-        if scores[index] > 0
+        for index in filtered[:top_k]
     ]

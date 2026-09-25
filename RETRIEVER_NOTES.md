@@ -1,92 +1,61 @@
 # Retriever Notları
 
-Bu dosya, retrieval katmanında karışabilecek kavramları ve mevcut akışı açıklar.
+Bu dosya mevcut SecureHome SHL-500 verisi ve gerçek product retriever akışını açıklar.
 
 ## 1. `get_vector_store()` ne yapar?
 
-`get_vector_store()` bizim yazdığımız yardımcı/factory fonksiyonudur.
-
-```python
-def get_vector_store() -> QdrantVectorStore:
-    settings = get_settings()
-    ensure_collection()
-
-    return QdrantVectorStore(
-        client=get_qdrant_client(),
-        collection_name=settings.qdrant_collection,
-        embedding=get_embeddings(),
-    )
-```
-
-Bu fonksiyon henüz arama yapmaz. Sadece şunları hazırlar:
+Dosya:
 
 ```text
+src/rag/vectorstores/qdrant.py
+```
+
+`get_vector_store()` bizim yazdığımız factory fonksiyonudur. Qdrant client'ı, collection'ı ve embedding adapter'ını hazırlar; tek başına arama yapmaz.
+
+```text
+get_vector_store()
+    ↓
 Qdrant bağlantısı
-Qdrant collection'ı
+Qdrant collection
 Embedding modeli
 ```
 
-Sonuç olarak bir `QdrantVectorStore` nesnesi döndürür.
+## 2. `as_retriever()` ve `invoke()` farkı
 
-## 2. `as_retriever()` ne yapar?
-
-`as_retriever()` bizim yazdığımız bir fonksiyon değildir. `QdrantVectorStore` sınıfının LangChain'den gelen hazır metodudur.
+`as_retriever()` LangChain'in `QdrantVectorStore` üzerinde hazır gelen metodudur. Vector store'u `BaseRetriever` uyumlu bir nesneye çevirir.
 
 ```python
-store = get_vector_store()
-retriever = store.as_retriever(
+retriever = get_vector_store().as_retriever(
     search_kwargs={
-        "k": settings.top_k,
-        "score_threshold": settings.retrieval_score_threshold,
+        "k": 30,
+        "score_threshold": 0.82,
     }
 )
 ```
 
-Bu satır arama yapmaz; vector store'u LangChain'in kullanabileceği retriever arayüzüne çevirir.
-
-Gerçek arama şu çağrıda yapılır:
+Bu satır henüz soru aramaz. Gerçek arama `invoke()` çağrısında başlar:
 
 ```python
-documents = retriever.invoke("iPhone 14 kaç gram?")
+documents = retriever.invoke("42 mm kapı için hangi vida kullanılmalı?")
 ```
 
-Arka planda kabaca şu akış gerçekleşir:
+Arka plandaki semantic akış:
 
 ```text
-invoke(question)
-→ query embedding
-→ Qdrant similarity search
-→ cosine similarity
-→ score threshold
-→ top_k chunk
+Soru
+  ↓
+E5 query embedding
+  ↓
+Qdrant dense vector search
+  ↓
+Cosine similarity
+  ↓
+Score threshold ve aday kısıtı
+  ↓
+Document listesi
 ```
 
-## 3. Default arama türümüz nedir?
-
-Şu anki `QdrantVectorStore` kullanımımızda default arama semantic/dense vector search'tür.
-
-Sebebi:
-
-```python
-embedding=get_embeddings()
-```
-
-ile embedding modeli bağlanıyor ve Qdrant dense vector'lar üzerinden arama yapıyor.
-
-Mevcut akış:
-
-```text
-Kullanıcı sorusu
-→ multilingual-e5-small query embedding
-→ Qdrant dense vector search
-→ cosine similarity
-→ top_k ve score threshold
-→ chunk'lar
-```
-
-BM25 veya sparse search Qdrant'ın default araması değildir; ancak ana product retriever akışında ayrıca LangChain `BM25Retriever` ile çalıştırılır.
-
-## 4. `product_retriever.py` ne yapar?
+## 3. Ana product retriever akışı
 
 Dosya:
 
@@ -94,160 +63,171 @@ Dosya:
 src/rag/retrievers/product_retriever.py
 ```
 
-Chatbot'un kullandığı ana retriever giriş noktasıdır.
-
-```python
-def get_product_retriever():
-    settings = get_settings()
-    return get_vector_store().as_retriever(
-        search_kwargs={
-            "k": settings.top_k,
-            "score_threshold": settings.retrieval_score_threshold,
-        }
-    )
-```
-
-Chat service bu retriever'ı chain'e verir:
+Bu, chatbotun kullandığı ana retrieval giriş noktasıdır:
 
 ```text
-ChatService
-→ product_retriever
-→ QA chain
-→ LLM
+Kullanıcı sorusu + product_id
+        ↓
+Qdrant semantic retriever
+        +
+LangChain BM25Retriever
+        ↓
+merge_retrieval_candidates()
+        ↓
+Context expansion
+        ↓
+CrossEncoder reranker
+        ↓
+Final top_k Document
 ```
 
-`product_retriever.py` semantic search kodunu satır satır yazmaz; hazır LangChain retriever bileşenlerini chain'e bağlar. İçeride Qdrant semantic retriever ile `BM25Retriever`'ı `EnsembleRetriever` üzerinden birleştirir.
+Ana akışta RRF veya `EnsembleRetriever` kullanılmıyor. Semantic ve BM25 sonuçları ayrı ayrı korunuyor, duplicate'ler temizlenerek aday havuzu oluşturuluyor. Böylece BM25'in bulduğu teknik bir değer, başka kolun sıralaması yüzünden erken aşamada kaybolmuyor.
 
-## 5. `qdrant_retriever.py` ne yapar?
+## 4. Product ID metadata filtresi
+
+Frontend ürün sayfasından şu bilgiyi gönderir:
+
+```json
+{
+  "question": "42 mm kapı için hangi vida kullanılmalı?",
+  "product_id": "SECUREHOME-SHL-500"
+}
+```
+
+Product retriever bu ID'yi Qdrant payload filtresine uygular:
+
+```text
+metadata.product_id == SECUREHOME-SHL-500
+```
+
+BM25 kolu da aynı ürünün chunk'larıyla sınırlandırılır. Bu filtre kullanıcının sorusundan ürün adı tahmin etmez; ürün sayfasındaki seçimi kullanır.
+
+## 5. BM25 index
 
 Dosya:
 
 ```text
-src/rag/retrievers/debug/qdrant_retriever.py
+src/rag/retrievers/bm25_index.py
 ```
 
-Bu dosya manuel test ve debug içindir.
-
-```python
-get_vector_store().similarity_search_with_score(
-    query,
-    k=limit,
-    filter=query_filter,
-    score_threshold=threshold,
-)
-```
-
-Sonuçları skorları ve metadata bilgileriyle açıkça görmemizi sağlar.
-
-İki dosya birbirini çağırmaz:
+BM25 embedding üretmez ve chunk oluşturmaz. Mevcut chunk'ları kelime, sayı ve model kodu eşleşmesine göre sıralar.
 
 ```text
-product_retriever.py
-→ chatbotun kullandığı retriever
+Ingestion sırasında:
+Markdown → chunk → BM25 index → data/indexes/bm25_retriever.pkl
 
-qdrant_retriever.py
-→ manuel arama, skor ve metadata test aracı
+Sorgu sırasında:
+Kullanıcı sorusu → hazır BM25 index → keyword adayları
 ```
 
-İkisi de aynı `get_vector_store()` fonksiyonunu ve aynı Qdrant collection'ını kullanır.
+Index her kullanıcı sorusunda yeniden oluşturulmaz. Yeni veya güncellenmiş ürün geldiğinde ingestion çalışır ve index yeniden kaydedilir.
 
-## 6. `keyword_retriever.py` ne yapar?
+## 6. Context expansion
 
 Dosya:
 
 ```text
-src/rag/retrievers/debug/keyword_retriever.py
+src/rag/retrievers/context_expander.py
 ```
 
-Bu dosya BM25 keyword aramasını prototip olarak çalıştırır.
+Retrieval'ın bulduğu chunk'ın aynı bölümündeki ilişkili chunk'ları aday havuzuna ekler. Bu özellikle teknik tabloların PDF sayfa sınırında bölündüğü durumlarda işe yarar.
+
+## 7. Reranker
+
+Dosya:
 
 ```text
-Markdown
-→ chunk
-→ kelimelere ayırma
-→ BM25 index
-→ sorgu kelimeleriyle eşleştirme
-→ keyword skoru
+src/rag/rerankers/cross_encoder.py
 ```
 
-Bu dosyadaki özel `BM25Okapi` prototipi chatbotun ana retriever'ına bağlı değildir; manuel skor testi için kullanılır. Ana akışta LangChain'in hazır `BM25Retriever` bileşeni kullanılır:
+`BAAI/bge-reranker-v2-m3` semantic ve BM25 adaylarını soru-belge ilgisine göre yeniden sıralar. Reranker yeni bilgi üretmez; yalnızca mevcut adaylar arasından daha uygun olanı üste taşır.
+
+## 8. Debug retriever'lar
+
+Dosya grubu:
+
+```text
+src/rag/retrievers/debug/
+```
+
+| Araç | Görevi |
+|---|---|
+| `qdrant_retriever.py` | Semantic skor, metadata ve Qdrant filtresini gözlemlemek |
+| `keyword_retriever.py` | Manuel BM25 skorlarını görmek |
+| `hybrid_retriever.py` | Debug amaçlı semantic + BM25 + RRF karşılaştırması yapmak |
+
+Debug hybrid içindeki RRF, ana chatbot akışında kullanılmaz. Yalnızca algoritmik karşılaştırma içindir.
+
+## 9. Güncel test komutları
+
+Semantic Qdrant araması:
 
 ```powershell
-python -m scripts.search_keyword_chunks "iPhone 14 kapasite 128 GB"
+.venv\Scripts\python.exe -m scripts.search_chunks "42 mm kapı için hangi vida kullanılmalı?" --product-id SECUREHOME-SHL-500
 ```
 
-BM25 semantic embedding üretmez ve chunk oluşturmaz. Mevcut chunk'ları kelime bazında sıralar.
+Ana production retriever:
 
-Ana akışta BM25 index'i ingestion sırasında oluşturulur ve `data/indexes/bm25_retriever.pkl` dosyasına kaydedilir. Sorgu geldiğinde bu hazır index yüklenir; her sorguda Markdown'lar tekrar okunup index kurulmaz.
-
-### BM25 index neden diske kaydedilir?
-
-Server hiç kapanmıyor gibi görünse bile production ortamında şu olaylar yaşanabilir:
-
-```text
-Server crash
-Deployment
-Docker container restart
-Makine restart
-Worker process restart
+```powershell
+.venv\Scripts\python.exe -m scripts.search_product_retriever "Piller biterse kilide nasıl güç verilir?"
 ```
 
-Index yalnızca RAM'de tutulursa bu olaylarda kaybolur. Bu nedenle ingestion sırasında index diske yazılır:
+Ürün filtresi olmadan tüm indexi aramak için:
 
-```text
-Ingestion:
-chunk'lar → BM25 index → data/indexes/bm25_retriever.pkl
-
-Server başlangıcı:
-dosyadan BM25 index'i RAM'e yükle
-
-Kullanıcı sorgusu:
-RAM'deki hazır index'i kullan
+```powershell
+.venv\Scripts\python.exe -m scripts.search_product_retriever "kapı kalınlığı" --all-products
 ```
 
-Index her kullanıcı sorusunda yeniden oluşturulmaz. Yeni ürün veya güncellenmiş doküman geldiğinde ingestion tekrar çalışır ve index dosyası güncellenir.
+Manuel BM25:
 
-Production'da daha büyük sistemlerde bu yerel pickle dosyası yerine Qdrant sparse index'i, Elasticsearch/OpenSearch veya paylaşılan persistent storage kullanılabilir.
-
-## 7. Mevcut hybrid yapı
-
-Dışarıya yine tek bir `product_retriever` sunuyoruz; içeride LangChain'in hazır bileşenleriyle iki arama yöntemi çalışıyor:
-
-```text
-product_retriever
-    ↓
-EnsembleRetriever
-    ├── Qdrant semantic/dense retriever
-    └── LangChain BM25Retriever
-    ↓
-birleştirilmiş ve yeniden sıralanmış chunk'lar
+```powershell
+.venv\Scripts\python.exe -m scripts.search_keyword_chunks "54 mm delik çapı" --product-id SECUREHOME-SHL-500
 ```
 
-Chatbot semantic mi, BM25 mi kullanıldığını bilmek zorunda değil.
+Debug hybrid:
 
-`EnsembleRetriever` sonuç sıralarını RRF benzeri rank fusion ile birleştirir. Çünkü cosine similarity ve BM25 skorları aynı ölçekte değildir.
+```powershell
+.venv\Scripts\python.exe -m scripts.search_hybrid_chunks "42 mm kapı vida" --product-id SECUREHOME-SHL-500
+```
+
+BM25 index yapısını görmek:
+
+```powershell
+.venv\Scripts\python.exe -m scripts.inspect_bm25_index "42 mm kapı"
+```
+
+Terim incelemek için:
+
+```powershell
+.venv\Scripts\python.exe -m scripts.inspect_bm25_index "vida" --term vida --term 42 --term 54 --term usb-c
+```
+
+## 10. Sonuçları nasıl yorumlamalıyız?
+
+- Semantic skor veya BM25 skorları birbirleriyle doğrudan karşılaştırılmaz; farklı ölçekte olabilirler.
+- Ana retriever'ın final sıralamasını CrossEncoder reranker belirler.
+- En iyi sonuçta ürün ID'si doğru, bölüm metadata'sı anlamlı ve içerik soruyu doğrudan destekliyor olmalıdır.
+- Dokümanda olmayan bir soru için doğru davranış, modelin tahmin üretmeyip bilginin kaynakta olmadığını söylemesidir.
+- Bir teknik değer ikinci veya üçüncü sıradaysa önce chunk bağlamı, tablo bütünlüğü ve reranker aday havuzu kontrol edilir.
 
 ## Kısa özet
 
 ```text
 get_vector_store()
-→ Qdrant vector store nesnesini hazırlar
+→ Qdrant vector store'u hazırlar
 
 as_retriever()
-→ vector store'u LangChain retriever'ına çevirir
+→ Vector store'u LangChain retriever arayüzüne çevirir
 
 invoke()
-→ gerçek semantic search'ü başlatır
+→ Gerçek semantic aramayı başlatır
 
 product_retriever
-→ chatbotun ana retriever arayüzüdür
+→ Chatbotun ana semantic + BM25 + context + reranker akışıdır
 
-qdrant_retriever
-→ manuel semantic search ve metadata filter test aracıdır
+debug retriever'lar
+→ Skorları ve alternatif arama davranışlarını gözlemleme araçlarıdır
 
-keyword_retriever
-→ manuel BM25 skor testi için özel prototiptir
-
-hybrid_retriever
-→ manuel özel hybrid prototipidir; ana akışta hazır `EnsembleRetriever` kullanılır
+RRF
+→ Yalnızca debug hybrid karşılaştırmasında vardır; ana akışta yoktur
 ```
