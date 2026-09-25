@@ -71,7 +71,7 @@ Kullanıcı sorusu + product_id
         ↓
 Semantic search + BM25 keyword search
         ↓
-RRF ile sonuçların birleştirilmesi
+Duplicate temizleme + ortak aday havuzu
         ↓
 Context expansion
         ↓
