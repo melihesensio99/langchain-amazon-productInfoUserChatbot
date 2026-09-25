@@ -1,0 +1,6 @@
+{
+  "name": "SecureHome SHL-500 Smart Lock",
+  "description": "SecureHome SHL-500 Akıllı Kapı Kilidi ürün detay ve asistan prototipi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
