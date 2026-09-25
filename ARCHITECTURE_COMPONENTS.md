@@ -1,185 +1,175 @@
-# Mimari Bileşenleri: Manuel ve Hazır Sınıflar
+# Mimari Bileşenleri
 
-Bu dosya, projede bizim yazdığımız sınıflarla kütüphanelerden gelen hazır sınıfları ayırır.
+Bu dosya, mevcut kodda bizim yazdığımız proje bileşenleri ile LangChain ve diğer kütüphanelerden kullandığımız hazır bileşenleri ayırır.
 
-## Bizim yazdığımız sınıflar
+## Güncel ana akış
+
+```text
+ChatRequest
+    ↓
+ChatService
+    ↓
+Product Retriever
+    ├── QdrantVectorStore.as_retriever()  → semantic search
+    └── BM25Retriever                     → keyword search
+    ↓
+merge_retrieval_candidates()
+    ↓
+context expansion
+    ↓
+CrossEncoder reranker
+    ↓
+top_k Document listesi
+    ↓
+QA chain + Mistral
+    ↓
+ChatResponse: answer + sources
+```
+
+Ana akışta RRF veya `EnsembleRetriever` kullanılmıyor. Semantic ve BM25 sonuçları ayrı ayrı alınır, duplicate'ler temizlenerek ortak aday havuzu oluşturulur ve bu adaylar reranker'a gönderilir. RRF yalnızca `src/rag/retrievers/debug/hybrid_retriever.py` içindeki manuel karşılaştırma aracında bulunur.
+
+## Bizim yazdığımız proje bileşenleri
 
 ### `src/core/config.py`
 
-```python
-class Settings(BaseSettings)
-```
-
-Proje ayarlarını taşır: Qdrant URL'i, collection adı, embedding modeli, `top_k` ve skor eşiği.
-`BaseSettings` sınıfı Pydantic kütüphanesinden hazır gelir; `Settings` bizim proje sınıfımızdır.
-
-### `src/core/exceptions.py`
-
-```python
-class RagException(Exception)
-class ConfigurationError(RagException)
-```
-
-Projeye özel hata sınıflarıdır.
-
-### `src/services/ingestion_service.py`
-
-```python
-class IngestionService
-```
-
-Markdown dokümanlarını yükler, chunk'lar ve Qdrant'a indexler.
+`Settings`, Pydantic Settings'ten türeyen proje ayar sınıfıdır. Qdrant adresi, collection, embedding modeli, `top_k`, reranker ve retrieval ayarlarını `.env` ile birleştirir.
 
 ### `src/services/chat_service.py`
 
-```python
-class ChatService
-```
+`ChatService`, API isteğini orkestre eder:
 
-Retriever ve QA chain'i kullanarak chatbot isteğini orkestre eder.
+1. `product_id` ile product retriever'ı seçer.
+2. Soruyu retrieval akışına gönderir.
+3. Gelen Document listesini QA chain'e aktarır.
+4. Kaynak metadata'sını `ChatResponse` içine koyar.
 
-### `src/schemas/chat.py` ve `src/schemas/ingest.py`
+### `src/services/ingestion_service.py`
 
-```python
-class ChatRequest(BaseModel)
-class ChatResponse(BaseModel)
-class IngestResponse(BaseModel)
-```
+İşlenmiş Markdown dosyalarını yükler, chunk'lar ve Qdrant full sync işlemini başlatır. BM25 index'i de ingestion çıktısı olarak güncellenir.
 
-API istek ve cevaplarının veri modelleridir. `BaseModel` hazır Pydantic sınıfıdır; bu DTO sınıfları bize aittir.
+### `src/rag/loaders/`
 
-### `src/rag/normalizers/chunk_quality.py`
+- `docling_loader.py`: PDF'i Docling ile ham Markdown'a dönüştürür.
+- `markdown_loader.py`: Frontmatter metadata'sını ayırır ve LangChain `Document` oluşturur.
+- `text_splitter.py`: Başlık ve tablo farkındalıklı chunking, breadcrumb context, duplicate temizliği ve kalite filtresi akışını yönetir.
 
-```python
-class ChunkQualityReport
-```
+### `src/rag/normalizers/`
 
-Chunk'ın kısa, heading-only veya boilerplate olup olmadığını raporlar.
+- `markdown_cleaner.py`: Docling parser artıklarını, footer'ları, bozuk başlıkları ve yapısal gürültüyü temizler.
+- `product_markdown_formatter.py`: Manifest metadata'sını Markdown frontmatter'ına ekler.
+- `chunk_quality.py`: Chunk'ın indexlenmeye uygun olup olmadığını raporlar.
 
 ### `src/rag/vectorstores/qdrant.py`
 
-```python
-class E5Embeddings(HuggingFaceEmbeddings)
-```
+`E5Embeddings`, `HuggingFaceEmbeddings` sınıfını ürün projesine uyarlar. E5 modeli için query ve passage prefix'lerini burada ekler. Aynı dosya Qdrant collection oluşturma, deterministic point ID ve full sync davranışını da yönetir.
 
-E5 modeline özel `query:` ve `passage:` prefix'lerini ekleyen bizim adapter sınıfımızdır. Temel embedding davranışı hazır `HuggingFaceEmbeddings` sınıfından gelir.
+### `src/rag/retrievers/product_retriever.py`
 
-### `src/rag/retrievers/debug/hybrid_retriever.py`
+Ana production retriever akışıdır. Qdrant semantic retriever ile hazır LangChain BM25 retriever'ı paralel çalıştırır. Ürün sayfasından gelen `product_id`, Qdrant payload filtresine ve ürün bazlı BM25 chunk seçimine uygulanır.
 
-```python
-class HybridRetriever(BaseRetriever)
-```
+### `src/rag/retrievers/context_expander.py`
 
-Semantic ve özel BM25 fonksiyonlarımızı RRF ile birleştiren manuel prototiptir. Test ve debug amacıyla tutulur; ana product retriever akışında kullanılmaz.
+Bulunan chunk'ın aynı bölümündeki ilişkili veya yakın chunk'ları aday havuzuna ekler. Özellikle bölünmüş teknik tablolar için bağlamı tamamlar.
 
-## Hazır kütüphane sınıfları
+### `src/rag/rerankers/cross_encoder.py`
 
-Projede doğrudan veya kalıtım yoluyla kullandığımız hazır bileşenler:
+`BAAI/bge-reranker-v2-m3` CrossEncoder'ını lazy-load eder. Semantic ve BM25'ten gelen adayları query-document ilgisine göre yeniden sıralar ve son `top_k` listesini döndürür.
 
-| Sınıf | Kütüphane | Kullanım amacı |
+### `src/rag/chains/qa_chain.py`
+
+Retrieval'dan gelen Document'ları prompt context'ine çevirir, Mistral generation'ı çalıştırır ve model çıktısındaki Markdown işaretlerini temizler.
+
+### `src/rag/retrievers/debug/`
+
+Manuel gözlem ve karşılaştırma araçlarıdır; ana chatbot akışında kullanılmazlar:
+
+| Dosya | Görevi |
+|---|---|
+| `qdrant_retriever.py` | Semantic skor ve metadata'yı doğrudan gösterir |
+| `keyword_retriever.py` | Manuel BM25 sonuçlarını ve skorlarını gösterir |
+| `hybrid_retriever.py` | Debug amaçlı semantic + BM25 + RRF karşılaştırması yapar |
+
+## Hazır kütüphane bileşenleri
+
+| Bileşen | Kütüphane | Kullanım |
 |---|---|---|
-| `BaseSettings` | Pydantic Settings | Ortam ayarları |
-| `BaseModel` | Pydantic | API schema temel sınıfı |
-| `Document` | LangChain Core | `page_content` + `metadata` taşıyan chunk |
-| `BaseRetriever` | LangChain Core | Retriever arayüzü |
-| `ChatPromptTemplate` | LangChain Core | Prompt şablonu |
-| `StrOutputParser` | LangChain Core | LLM çıktısını metne çevirme |
-| `RecursiveCharacterTextSplitter` | LangChain Text Splitters | Uzun metni parçalara bölme |
-| `MarkdownHeaderTextSplitter` | LangChain Text Splitters | Markdown başlıklarına göre bölme |
-| `HuggingFaceEmbeddings` | LangChain HuggingFace | Embedding üretme |
-| `QdrantVectorStore` | LangChain Qdrant | LangChain-Qdrant bağlantısı |
+| `BaseSettings` | Pydantic Settings | Environment ayarlarının temeli |
+| `BaseModel` | Pydantic | API schema'larının temeli |
+| `Document` | LangChain Core | `page_content` ve `metadata` taşıyan veri nesnesi |
+| `ChatPromptTemplate` | LangChain Core | System ve human prompt şablonu |
+| `RunnableParallel` | LangChain Core | Semantic ve BM25 kollarını paralel çalıştırır |
+| `RunnableLambda` | LangChain Core | Python fonksiyonunu LCEL akışına bağlar |
+| `StrOutputParser` | LangChain Core | LLM çıktısını string'e çevirir |
+| `MarkdownHeaderTextSplitter` | LangChain Text Splitters | Markdown başlıklarına göre ilk bölme |
+| `RecursiveCharacterTextSplitter` | LangChain Text Splitters | Gerekirse uzun içerikleri bölme |
+| `HuggingFaceEmbeddings` | LangChain HuggingFace | Embedding model adaptörü |
+| `QdrantVectorStore` | LangChain Qdrant | Qdrant ile LangChain entegrasyonu |
 | `QdrantClient` | Qdrant Client | Qdrant API bağlantısı |
-| `ChatMistralAI` | LangChain Mistral | Mistral LLM bağlantısı |
-| `BM25Okapi` | `rank-bm25` | Manuel BM25 prototipi |
 | `BM25Retriever` | LangChain Community | Hazır keyword retriever |
-| `EnsembleRetriever` | LangChain Classic | Birden fazla retriever'ı rank fusion ile birleştirme |
-| `RunnableLambda` | LangChain Core | Ensemble sonucunu final `top_k` ile sınırlama |
-| `DocumentConverter` | Docling | PDF → Markdown/doküman dönüşümü |
+| `ChatMistralAI` | LangChain Mistral | Mistral API bağlantısı |
+| `CrossEncoder` | Sentence Transformers | Reranking modeli |
+| `DocumentConverter` | Docling | PDF → Markdown dönüşümü |
 | `FastAPI`, `APIRouter` | FastAPI | HTTP API katmanı |
 
-## Ana akışta hangileri kullanılıyor?
+## BM25 indexleme nerede gerçekleşiyor?
 
-Ana chatbot retrieval akışı:
+BM25 index'i kullanıcı sorusu geldiğinde sıfırdan oluşturulmaz. Ingestion sırasında güncel chunk listesiyle oluşturulur ve `data/indexes/bm25_retriever.pkl` dosyasına kaydedilir.
 
 ```text
-product_retriever.py
+İşlenmiş Markdown
     ↓
-QdrantVectorStore.as_retriever()
+Chunk listesi
     ↓
-BM25Retriever.from_documents()
+build_bm25_retriever()
     ↓
-EnsembleRetriever
+data/indexes/bm25_retriever.pkl
     ↓
-RunnableLambda ile final top_k
+load_bm25_retriever()
+    ↓
+Kullanıcı sorusunda keyword araması
 ```
 
-Bu akışta semantic ve keyword retriever'lar hazır LangChain bileşenleriyle oluşturulur.
+Ürün sayfası için `product_id` verilirse mevcut chunk'lar o ürünle sınırlandırılarak ürün bazlı BM25 retriever oluşturulur.
 
-Manuel test akışları:
+## Main akış ile debug akışının farkı
 
-```text
-debug/qdrant_retriever.py
-    → similarity_search_with_score()
-
-debug/keyword_retriever.py
-    → BM25Okapi + manuel skorlar
-
-debug/hybrid_retriever.py
-    → manuel semantic + BM25 + RRF
-```
-
-## Manuel hybrid ile hazır ensemble farkı
-
-### Manuel `HybridRetriever`
+### Main product retriever
 
 ```text
-Qdrant semantic search
-+
-özel BM25 fonksiyonu
-→ bizim yazdığımız RRF
-→ Document + RRF skoru
-```
-
-Avantajları:
-
-- Ham semantic ve BM25 skorlarını inceleyebiliriz.
-- Tokenization ve tekilleştirme tamamen kontrolümüzdedir.
-- Debug ve deney için uygundur.
-
-### Hazır `EnsembleRetriever`
-
-```text
-Qdrant retriever
-+
+Qdrant semantic retriever
+        +
 LangChain BM25Retriever
-→ hazır rank fusion
-→ Document listesi
+        ↓
+merge_retrieval_candidates()
+        ↓
+context expansion
+        ↓
+CrossEncoder reranker
 ```
 
-Avantajları:
+Bu akışta RRF yoktur. İki retrieval kolunun adayları kaybolmasın diye ayrı ayrı korunur.
 
-- LangChain `BaseRetriever` arayüzüne uygundur.
-- Chain'e doğrudan bağlanır.
-- Daha az özel kod ve daha kolay bakım sağlar.
-- `weights=[0.7, 0.3]` ile semantic/keyword etkisi ayarlanabilir.
-
-Hazır ensemble genellikle ham skorları dışarı vermez; sonuçları `Document` olarak döndürür. Bu nedenle manuel hybrid debug için, hazır ensemble ise ana chatbot akışı için tutulur.
-
-## Aynı sorguyla yapılan karşılaştırma
-
-Sorgu:
+### Debug hybrid retriever
 
 ```text
-iPhone 14 kapasite 128 GB
+Manuel Qdrant skorları
+        +
+Manuel BM25 skorları
+        ↓
+RRF
+        ↓
+Terminalde karşılaştırmalı sonuç
 ```
 
-Manuel hybrid ve hazır `product_retriever` akışlarında ilk sonuç aynı çıktı:
+Bu akış yalnızca algoritmayı gözlemlemek ve A/B testi yapmak içindir.
+
+## Güncel ürün bağlamı
+
+Mevcut test ürünü:
 
 ```text
-Kapasite
-128 GB
-256 GB
-512 GB
+SecureHome SHL-500 Smart Lock
+product_id: SECUREHOME-SHL-500
 ```
 
-İlk dört sonuç da aynıydı; beşinci sırada küçük bir sıralama farkı görüldü. Manuel versiyon RRF skorunu gösterirken hazır ensemble yalnızca `Document` döndürdü.
+Önceki iPhone, Samsung, Grundig, MSI ve TV ürünleri güncel veri setinden çıkarılmıştır. Yeni ürünler eklendiğinde ingestion aynı genel akışla çalışır; ürün bilgileri manifestten, bölüm bilgileri Markdown başlıklarından gelir.
