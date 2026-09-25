@@ -36,7 +36,8 @@ export interface Product {
 }
 
 export const product: Product = {
-  id: "SECUREHOME-SHL-500",
+  // Geçici demo ID'si: ürün oluşturma endpoint'inin PostgreSQL'de ürettiği gerçek ID.
+  id: "3ca19032-7a98-4564-a342-9f8f06c6fa3c",
   name: "SecureHome SHL-500 Smart Lock",
   brand: "SecureHome",
   type: "Akıllı kapı kilidi",

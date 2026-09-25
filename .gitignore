@@ -6,6 +6,9 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 qdrant_storage/
+postgres_storage/
+rabbitmq_storage/
+data/uploads/
 chroma_db/
 .cache/
 data/indexes/

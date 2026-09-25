@@ -15,8 +15,10 @@ Amaç yalnızca PDF'i embedding'e çevirip aramak değildir. Farklı kalitedeki 
 | Keyword search | BM25 | Exact terim, sayı ve model kodu eşleşmesi yapar |
 | Reranker | `BAAI/bge-reranker-v2-m3` | Aday chunk'ları soruya göre yeniden sıralar |
 | Generation LLM | Mistral `ministral-8b-2512` | Kaynak context'inden Türkçe cevap üretir |
-| API | FastAPI | Chat ve ingestion endpoint'lerini sunar |
+| API | FastAPI | Ürün upload, chat ve yorum endpoint'lerini sunar |
 | Frontend | React + Vite | Ürün ekranı ve chatbot arayüzünü sağlar |
+| Relational database | PostgreSQL + SQLAlchemy | Ürün, PDF konumu ve yorum kayıtlarını tutar |
+| Message broker | RabbitMQ + `aio-pika` | PDF ingestion job'larını kuyruğa alır |
 
 ## Projeyi gör
 
@@ -44,9 +46,19 @@ RAM ve işlemci bilgisi kaynaklarda olmadığı için bu değerler icat edilmez.
 
 ## Genel akış
 
-### Dokümandan Qdrant'a
+### Ürün oluşturma ve asenkron ingestion
 
 ```text
+Frontend / API multipart PDF upload
+        ↓
+PostgreSQL Product kaydı + UUID üretimi
+        ↓
+PDF data/uploads altına kaydedilir
+        ↓
+RabbitMQ product-ingestion queue
+        ↓
+ProductIngestionConsumer
+        ↓
 PDF katalog / kullanım kılavuzu
         ↓
 Docling ile ham Markdown
@@ -64,10 +76,14 @@ multilingual-e5-small embedding
 Qdrant vector database
 ```
 
+API PDF'i işlerken beklemez; `202 Accepted` ve `ingestion_status=queued` döndürür. Worker kapalıysa job RabbitMQ'da bekler.
+
 ### Sorudan cevaba
 
 ```text
-Kullanıcı sorusu + product_id
+Frontend sorusu + PostgreSQL'den alınmış product_id
+        ↓
+Backend ürünün PostgreSQL'de varlığını doğrular
         ↓
 Semantic search + BM25 keyword search
         ↓
@@ -89,6 +105,10 @@ Cevap + kaynaklar
 | `api` | FastAPI HTTP endpoint'leri |
 | `schemas` | İstek ve cevap modelleri |
 | `services` | Chat ve ingestion orkestrasyonu |
+| `db` | SQLAlchemy modelleri ve PostgreSQL session yönetimi |
+| `repositories` | Veritabanı erişim katmanı |
+| `messaging` | RabbitMQ job publisher ve mesaj sözleşmeleri |
+| `workers` | RabbitMQ consumer ve arka plan işleyicileri |
 | `rag/loaders` | Docling, Markdown yükleme ve chunking |
 | `rag/normalizers` | Parser artığı temizliği ve kalite kontrolü |
 | `rag/retrievers` | Semantic, BM25, hybrid ve product retrieval |
@@ -114,38 +134,42 @@ Cevap + kaynaklar
 
 Normalizer bilinmeyen bir ürünün içeriğini elle yeniden yazmaz; genel yapısal temizlik uygular. Bu yüzden farklı ürün türleri için de kullanılabilir.
 
-## Metadata ve kaynak türleri
+## Ürün, yorum ve metadata modeli
 
-Örnek ürün metadata'sı:
-
-```yaml
-product_id: SECUREHOME-SHL-500
-product_name: SecureHome SHL-500 Smart Lock
-source_type: technical_and_manual
-```
-
-İleride kullanıcı yorumları da ayrı kaynak türüyle indexlenecek:
+Ürün tablosu bilinçli olarak minimal tutulur:
 
 ```text
-technical_and_manual
-product_review
+Product
+├── id          UUID (backend üretir)
+├── name
+├── pdf_path
+├── created_at
+└── updated_at
 ```
 
-Yorumların planlanan akışı:
+Yorum tablosu:
 
 ```text
-PostgreSQL → RabbitMQ → sentiment worker → Qdrant review index
+Review
+├── id
+├── product_id
+├── text
+├── rating
+├── sentiment   positive | negative | neutral | null
+└── created_at
 ```
 
-## Mevcut test ürünü
-
-Şu an test ürünü SecureHome SHL-500 Smart Lock'tır.
+PDF Markdown'a dönüştürülürken RAG metadata'sı PostgreSQL Product kaydından oluşturulur:
 
 ```text
-data/processed/securehome-shl-500-technical-and-manual.md
+Product.id → metadata.product_id
+Product.name → metadata.product_name
+Product.pdf_path → metadata.source_file
 ```
 
-Doküman; kapı kalınlığı, vida seçimi, backset, delik çapı, DoorSense ve acil güç beslemesi gibi gerçekçi teknik senaryolarla test edilmektedir.
+## Mevcut test akışı
+
+Test için SecureHome SHL-500 PDF'i upload endpointi üzerinden gönderilebilir. Ürün ID'si elle verilmez; response içindeki `product.id` backend tarafından üretilir ve chat isteğinde kullanılır.
 
 ## Kurulum
 
@@ -157,17 +181,23 @@ pip install -r requirements.txt
 
 `.env` dosyasına Mistral API anahtarını ekleyin. API anahtarını Git'e commit etmeyin.
 
-Qdrant:
+Qdrant, PostgreSQL ve RabbitMQ:
 
 ```powershell
-docker compose up -d qdrant
+docker compose up -d qdrant postgres rabbitmq
 ```
 
 Dashboard: <http://localhost:6333/dashboard>
 
-## PDF dönüştürme ve ingestion
+Veritabanı tablolarını migration ile oluşturun:
 
-PDF'leri `data/document_manifest.yaml` içinde ürün ve belge türüyle eşleştirin:
+```powershell
+.venv\Scripts\python.exe -m alembic upgrade head
+```
+
+## Eski manifest tabanlı ingestion
+
+Manifest scriptleri toplu/legacy ingestion için hâlâ kullanılabilir:
 
 ```powershell
 .venv\Scripts\python.exe -m scripts.convert_manifest data\document_manifest.yaml
@@ -183,6 +213,24 @@ Backend:
 .venv\Scripts\python.exe -m uvicorn src.main:app --reload --port 8000
 ```
 
+Yerel Python geliştirme akışında API ve worker ayrı process olarak çalıştırılabilir:
+
+```powershell
+.venv\Scripts\python.exe -m scripts.rag_worker
+```
+
+Ürün oluşturma endpoint'i `multipart/form-data` kabul eder:
+
+```text
+POST /api/v1/products
+name: SecureHome SHL-500
+pdf: <manual.pdf>
+```
+
+`product_id` gönderilmezse backend UUID üretir. Upload response'undaki `product.id`, sonraki chat isteğinde `product_id` olarak kullanılır.
+
+API PDF'i `data/uploads` altına kaydeder, ürünü PostgreSQL'e yazar ve yalnızca `product_id` içeren kalıcı RabbitMQ ingestion job'ı bırakır. Worker job'ı aldığında ürünün adını ve PDF konumunu PostgreSQL'den okur; ardından PDF'i Markdown'a çevirir, `data/processed` altına yazar ve Qdrant/BM25 indexlerini günceller. API `202 Accepted` ve `ingestion_status=queued` döndürür.
+
 Frontend:
 
 ```powershell
@@ -193,6 +241,8 @@ npm run dev
 
 Frontend: <http://localhost:3000>
 
+Frontend şu an ürün listesini veritabanından çekmiyor. `frontend/src/data/product.ts` içindeki `product.id`, lokal test sırasında PostgreSQL'e upload edilen SecureHome ürününün gerçek UUID'siyle simüle edilmiştir. Yeni ürün oluşturulduğunda bu değer, upload response'undaki `product.id` ile değiştirilmelidir; kalıcı çözümde frontend upload response'unu state/store içinde tutup chat isteğine buradan gönderecektir.
+
 Chat endpoint'i:
 
 ```http
@@ -202,9 +252,25 @@ POST /api/v1/chat
 ```json
 {
   "question": "42 mm kapı için hangi montaj vidası kullanılmalı?",
-  "product_id": "SECUREHOME-SHL-500"
+  "product_id": "UPLOAD_RESPONSE_PRODUCT_ID"
 }
 ```
+
+## Ürün ve yorum endpoint'leri
+
+Ürün için yalnızca RAG dokümanıyla eşleşen kimlik, ürün adı ve PDF konumu tutulur. Yorumlar ayrı endpoint üzerinden eklenir:
+
+```http
+POST /api/v1/products
+POST /api/v1/products/{product_id}/reviews
+GET /api/v1/products/{product_id}/reviews
+GET /api/v1/products/{product_id}
+GET /api/v1/products?skip=0&limit=20
+PATCH /api/v1/products/{product_id}
+DELETE /api/v1/products/{product_id}
+```
+
+Upload response'undaki `product.id` değerini chat isteğindeki `product_id` olarak kullanın. Frontend ürün ekranı statik kalabilir; önemli olan chat gönderilirken doğru ürün ID'sinin taşınmasıdır.
 
 ## Retrieval testi
 
@@ -222,13 +288,11 @@ Hybrid retrieval testi:
 
 | Aşama | Amaç |
 |---|---|
-| Ürün ve yorum endpoint'leri | Ürünleri ve yorumları veritabanına almak |
-| RabbitMQ worker | Yorum sentiment analizini arka planda çalıştırmak |
 | Review indexing | İşlenmiş yorumları Qdrant'a eklemek |
-| PostgreSQL | SQLite prototipinden gerçek ilişkisel veritabanına geçmek |
+| Ingestion status | Ürün işleme durumunu PostgreSQL'de takip etmek |
 | Tool calling | Stok, sipariş ve ürün verilerini kontrollü araçlarla sorgulamak |
 | Evaluation set | Retrieval doğruluğunu ve regresyonları ölçmek |
 
 ## Proje durumu
 
-Ingestion, semantic search, BM25, hybrid retrieval, context expansion, reranking ve Mistral generation akışları çalışır durumdadır. Proje şu anda gerçek bir ürün sayfasındaki retrieval ve kaynaklı cevap üretimini test eden prototip aşamasındadır.
+Ürün upload, PostgreSQL kaydı, RabbitMQ job tüketimi, PDF ingestion, semantic search, BM25, hybrid retrieval, context expansion, reranking ve Mistral generation akışları çalışır durumdadır. Proje şu anda gerçek ürün PDF'leriyle kaynaklı cevap üretimini test eden prototip aşamasındadır.

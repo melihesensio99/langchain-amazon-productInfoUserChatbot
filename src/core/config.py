@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     # Qdrant bağlantı ve collection ayarları.
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "amazon_products"
+    database_url: str = "postgresql+psycopg://amazon:amazon@localhost:5432/amazon_products"
+    rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
+    rabbitmq_ingestion_queue: str = "product-ingestion"
+    upload_dir: str = "data/uploads"
 
     # Embedding modeli ve retrieval arama ayarları.
     # Lokal ve hafif embedding modeli; chunk ve query vektörlerini üretir.
