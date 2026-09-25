@@ -4,6 +4,44 @@ Bu proje, e-ticaret ürünlerinin teknik dokümanlarını ve kullanım kılavuzl
 
 Amaç yalnızca PDF'i embedding'e çevirip aramak değildir. Farklı kalitedeki PDF'leri temizleyen, anlamlı chunk'lara bölen, doğru ürüne göre filtreleyen, retrieval sonuçlarını yeniden sıralayan ve Mistral ile doğal cevap üreten sürdürülebilir bir pipeline oluşturuyoruz.
 
+## Öne çıkan teknolojiler ve modeller
+
+| Bileşen | Kullanılan teknoloji / model | Görevi |
+|---|---|---|
+| PDF parser | Docling | PDF'i yapısal Markdown'a dönüştürür |
+| Orchestration | LangChain | Loader, splitter, retriever ve generation akışını birleştirir |
+| Embedding | `intfloat/multilingual-e5-small` | Türkçe ve çok dilli metinleri vektörleştirir |
+| Vector database | Qdrant | Chunk embedding'lerini ve metadata'yı saklar |
+| Keyword search | BM25 | Exact terim, sayı ve model kodu eşleşmesi yapar |
+| Reranker | `BAAI/bge-reranker-v2-m3` | Aday chunk'ları soruya göre yeniden sıralar |
+| Generation LLM | Mistral `ministral-8b-2512` | Kaynak context'inden Türkçe cevap üretir |
+| API | FastAPI | Chat ve ingestion endpoint'lerini sunar |
+| Frontend | React + Vite | Ürün ekranı ve chatbot arayüzünü sağlar |
+
+## Projeyi gör
+
+### Ürün dashboard'u
+
+![SecureHome SHL-500 ürün dashboard'u](docs/screenshots/product-dashboard.png)
+
+Ürün ekranında chatbot seçili ürünle birlikte açılır. Frontend, ürünün `product_id` değerini backend'e gönderir; böylece soru başka ürünlerin chunk'larıyla karışmaz.
+
+### Kaynaklı cevaplar
+
+![Kaynaklı teknik cevaplar](docs/screenshots/grounded-answers.png)
+
+Pil bitmesi, ana montaj deliği ve vida seçimi sorularında cevapların altında kullanılan SecureHome SHL-500 dokümanı gösterilir.
+
+### Kaynakta olmayan bilgiyi uydurmama
+
+![Dokümanda olmayan DoorSense sorusu](docs/screenshots/missing-source-doorsense.png)
+
+DoorSense bilgisi mevcut dokümanda olmadığı için chatbot tahmin üretmez ve bilginin belgede bulunmadığını belirtir.
+
+![Dokümanda olmayan RAM ve işlemci sorusu](docs/screenshots/missing-source-specs.png)
+
+RAM ve işlemci bilgisi kaynaklarda olmadığı için bu değerler icat edilmez. Sistem yalnızca belgede bulunan teknik özellikleri kullanır.
+
 ## Genel akış
 
 ### Dokümandan Qdrant'a
@@ -178,37 +216,6 @@ Hybrid retrieval testi:
 
 ```powershell
 .venv\Scripts\python.exe -m scripts.search_hybrid_chunks "uygulama bağlantısı neden kopuyor"
-```
-
-## Ekran görüntüleri ve kaynak kontrollü cevaplar
-
-### Ürün dashboard'u
-
-![SecureHome SHL-500 ürün dashboard'u](docs/screenshots/product-dashboard.png)
-
-Ürün ekranında chatbot seçili ürünle birlikte açılır. Frontend, ürünün `product_id` değerini backend'e gönderir. Böylece soru başka ürünlerin chunk'larıyla karışmaz.
-
-### Kaynağa dayalı teknik cevaplar
-
-![Kaynaklı teknik cevaplar](docs/screenshots/grounded-answers.png)
-
-Bu görüntüde pil bitmesi, ana montaj deliği ve vida seçimi soruları görülüyor. Cevapların altında kullanılan SecureHome SHL-500 dokümanı kaynak olarak gösteriliyor. Örneğin 42 mm kapı için 40–50 mm aralığına karşılık gelen siyah vidalar seçiliyor.
-
-### Kaynakta olmayan bilgiyi uydurmama
-
-![Dokümanda olmayan DoorSense sorusu](docs/screenshots/missing-source-doorsense.png)
-
-DoorSense bilgisi mevcut SecureHome dokümanında bulunmadığı için chatbot yüzeye veya gömme montaja dair tahmin üretmiyor. Bunun yerine bilginin belgede bulunmadığını açıkça belirtiyor. Bu, RAG sisteminin dış bilgiyle cevap uydurmak yerine kaynak sınırına uymasıdır.
-
-![Dokümanda olmayan RAM ve işlemci sorusu](docs/screenshots/missing-source-specs.png)
-
-SecureHome SHL-500 için RAM ve işlemci bilgisi kaynaklarda bulunmadığından bu alanlar için cevap verilmediği belirtiliyor. Sistem yalnızca belgede gerçekten bulunan PIN, parmak izi, kapı kalınlığı ve güvenlik özellikleri gibi bilgileri bağlam olarak kullanıyor; RAM veya işlemci değeri icat etmiyor.
-
-Bu davranışın temel kuralı şudur:
-
-```text
-Retrieval sonucu yoksa veya kaynak soruyu desteklemiyorsa:
-cevap uydurma, bilginin dokümanda olmadığını belirt.
 ```
 
 ## Gelecek aşamalar
