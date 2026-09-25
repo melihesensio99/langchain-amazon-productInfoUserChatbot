@@ -10,8 +10,7 @@ def main() -> None:
     )
     parser.add_argument(
         "query",
-        nargs="?",
-        default="iPhone 14 kapasite 128 GB",
+        help="Query to inspect",
     )
     args = parser.parse_args()
 

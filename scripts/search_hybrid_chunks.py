@@ -1,6 +1,6 @@
 import argparse
 
-from src.rag.retrievers.hybrid_retriever import search_hybrid_chunks
+from src.rag.retrievers.debug.hybrid_retriever import search_hybrid_chunks
 
 
 def main() -> None:

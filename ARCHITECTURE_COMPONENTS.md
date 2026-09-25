@@ -64,7 +64,7 @@ class E5Embeddings(HuggingFaceEmbeddings)
 
 E5 modeline özel `query:` ve `passage:` prefix'lerini ekleyen bizim adapter sınıfımızdır. Temel embedding davranışı hazır `HuggingFaceEmbeddings` sınıfından gelir.
 
-### `src/rag/retrievers/hybrid_retriever.py`
+### `src/rag/retrievers/debug/hybrid_retriever.py`
 
 ```python
 class HybridRetriever(BaseRetriever)
@@ -118,13 +118,13 @@ Bu akışta semantic ve keyword retriever'lar hazır LangChain bileşenleriyle o
 Manuel test akışları:
 
 ```text
-qdrant_retriever.py
+debug/qdrant_retriever.py
     → similarity_search_with_score()
 
-keyword_retriever.py
+debug/keyword_retriever.py
     → BM25Okapi + manuel skorlar
 
-hybrid_retriever.py
+debug/hybrid_retriever.py
     → manuel semantic + BM25 + RRF
 ```
 

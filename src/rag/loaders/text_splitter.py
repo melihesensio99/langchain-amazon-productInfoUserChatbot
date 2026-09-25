@@ -148,6 +148,24 @@ def _deduplicate_chunks(chunks: list[Document]) -> list[Document]:
     return unique
 
 
+def _add_chunk_positions(chunks: list[Document]) -> list[Document]:
+    """Her belge içindeki chunk sırasını metadata'ya ekler.
+
+    Retrieval sırasında aynı tablo/bölümün komşu parçalarını bulabilmek için
+    içerik sırası gerekir. Bu alan embedding'e girmez; yalnızca payload olarak
+    saklanır ve deterministic chunk ID hesabını değiştirmez.
+    """
+    positions: dict[tuple[str, str], int] = {}
+    for chunk in chunks:
+        key = (
+            str(chunk.metadata.get("product_id", "")),
+            str(chunk.metadata.get("source_file", "")),
+        )
+        chunk.metadata["chunk_index"] = positions.get(key, 0)
+        positions[key] = chunk.metadata["chunk_index"] + 1
+    return chunks
+
+
 def split_markdown_documents(documents, *, filter_quality: bool = True):
     """Markdown başlıklarını böler, tabloları korur ve kalite filtresi uygular."""
     header_splitter = MarkdownHeaderTextSplitter(
@@ -165,6 +183,7 @@ def split_markdown_documents(documents, *, filter_quality: bool = True):
             chunks.extend(_split_section_with_tables(section))
 
     chunks = [_prepend_context(chunk) for chunk in _deduplicate_chunks(chunks)]
+    chunks = _add_chunk_positions(chunks)
     if not filter_quality:
         return chunks
 

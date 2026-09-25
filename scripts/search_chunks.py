@@ -1,6 +1,6 @@
 import argparse
 
-from src.rag.retrievers.qdrant_retriever import search_product_chunks
+from src.rag.retrievers.debug.qdrant_retriever import search_product_chunks
 
 
 def main() -> None:

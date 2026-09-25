@@ -7,9 +7,8 @@ router = APIRouter()
 
 
 @router.post("", response_model=RetrievalResponse)
-def retrieve(request: RetrievalRequest) -> RetrievalResponse:
-    """Sadece retrieval çalıştırır; LLM generation çağırmaz."""
-
+def retrieve_debug(request: RetrievalRequest) -> RetrievalResponse:
+    """Debug endpoint'i: LLM çağırmadan retrieval chunk'larını gösterir."""
     retriever = get_product_retriever(request.product_id)
     documents = retriever.invoke(request.question)
     return RetrievalResponse(

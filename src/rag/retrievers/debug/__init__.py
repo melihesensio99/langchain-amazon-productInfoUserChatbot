@@ -1,0 +1,1 @@
+"""Manuel retrieval karşılaştırma araçları."""

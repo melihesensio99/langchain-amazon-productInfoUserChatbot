@@ -1,47 +1,115 @@
-# Amazon Product Info User Chatbot
+# Product RAG Chatbot
 
-Bu proje, e-ticaret ürün dokümanlarını anlayıp kullanıcı sorularına kaynak dokümanlara dayalı cevaplar vermeyi amaçlayan bir RAG tabanlı ürün bilgi chatbot'udur.
+Bu proje, e-ticaret ürünlerinin teknik dokümanlarını ve kullanım kılavuzlarını anlayarak ürün sayfası üzerinden kaynaklı cevaplar veren RAG tabanlı bir chatbot prototipidir.
 
-Ürün bilgileri farklı PDF kataloglarından ve kullanım kılavuzlarından gelebilir. Bu nedenle ilk aşamada PDF'ler Docling ile Markdown'a dönüştürülür, temizlenir, ürün metadata'sı frontmatter olarak eklenir ve LangChain ile anlamlı parçalara ayrılır. Oluşturulan chunk'lar yerel embedding modeliyle vektörleştirilerek Qdrant'a kaydedilir.
+Amaç yalnızca PDF'i embedding'e çevirip aramak değildir. Farklı kalitedeki PDF'leri temizleyen, anlamlı chunk'lara bölen, doğru ürüne göre filtreleyen, retrieval sonuçlarını yeniden sıralayan ve Mistral ile doğal cevap üreten sürdürülebilir bir pipeline oluşturuyoruz.
 
-## Mevcut pipeline
+## Genel akış
+
+### Dokümandan Qdrant'a
 
 ```text
-PDF
-  ↓
-Docling Markdown
-  ↓
-Markdown temizleme + frontmatter metadata
-  ↓
+PDF katalog / kullanım kılavuzu
+        ↓
+Docling ile ham Markdown
+        ↓
+Markdown normalizasyonu + frontmatter metadata
+        ↓
 LangChain Markdown loader
-  ↓
-Başlık bazlı chunking
-  ↓
+        ↓
+Başlık ve tablo farkındalıklı chunking
+        ↓
+Kalite filtresi + breadcrumb context
+        ↓
 multilingual-e5-small embedding
-  ↓
+        ↓
 Qdrant vector database
 ```
 
-Şu an iki iPhone 14 dokümanı işlenmiş ve 109 chunk Qdrant'a yazılmıştır. Retrieval ve Mistral tabanlı cevap üretimi bir sonraki geliştirme aşamasıdır.
+### Sorudan cevaba
+
+```text
+Kullanıcı sorusu + product_id
+        ↓
+Semantic search + BM25 keyword search
+        ↓
+RRF ile sonuçların birleştirilmesi
+        ↓
+Context expansion
+        ↓
+Cross-encoder reranker
+        ↓
+Mistral generation
+        ↓
+Cevap + kaynaklar
+```
 
 ## Mimari
 
-```text
-src/
-├── api/              # FastAPI endpoint'leri
-├── core/             # Ayarlar ve uygulama altyapısı
-├── rag/
-│   ├── loaders/      # Docling ve Markdown yükleyicileri
-│   ├── normalizers/  # Markdown temizleme ve frontmatter
-│   ├── vectorstores/ # Embedding ve Qdrant bağlantısı
-│   └── prompts/      # RAG prompt'ları
-├── services/         # Ingestion ve chat iş mantığı
-└── schemas/          # API veri modelleri
+| Katman | Sorumluluk |
+|---|---|
+| `api` | FastAPI HTTP endpoint'leri |
+| `schemas` | İstek ve cevap modelleri |
+| `services` | Chat ve ingestion orkestrasyonu |
+| `rag/loaders` | Docling, Markdown yükleme ve chunking |
+| `rag/normalizers` | Parser artığı temizliği ve kalite kontrolü |
+| `rag/retrievers` | Semantic, BM25, hybrid ve product retrieval |
+| `rag/rerankers` | Aday chunk'ları yeniden sıralama |
+| `rag/vectorstores` | Embedding ve Qdrant bağlantısı |
+| `rag/prompts` | Generation prompt'ları |
+| `frontend` | Ürün ekranı ve chatbot arayüzü |
+
+## RAG kalitesini artırmak için yaptıklarımız
+
+| İyileştirme | Faydası |
+|---|---|
+| Manifest metadata | Aynı ürüne ait farklı PDF'leri `product_id` altında toplar |
+| Markdown normalizasyonu | Docling footer, placeholder, kontrol karakteri ve biçim artıklarını azaltır |
+| Başlık farkındalıklı chunking | Teknik bilgi başlık ve tablo sınırlarında korunur |
+| Breadcrumb context | Chunk'ın hangi ürün ve bölümden geldiğini embedding'e taşır |
+| Chunk kalite filtresi | Boş, başlık-only ve düşük bilgi yoğunluklu chunk'ları eler |
+| Hybrid retrieval | Semantic benzerlik ile exact keyword eşleşmesini birleştirir |
+| Context expansion | Bölünmüş tablo ve yakın bölüm bağlamını tamamlar |
+| Reranking | En uygun aday chunk'ı üst sıraya taşır |
+| Deterministic chunk ID | Tekrar ingestion sırasında duplicate point oluşmasını önler |
+| Kaynak kontrollü generation | Mistral'ın doküman dışı bilgi uydurmasını azaltır |
+
+Normalizer bilinmeyen bir ürünün içeriğini elle yeniden yazmaz; genel yapısal temizlik uygular. Bu yüzden farklı ürün türleri için de kullanılabilir.
+
+## Metadata ve kaynak türleri
+
+Örnek ürün metadata'sı:
+
+```yaml
+product_id: SECUREHOME-SHL-500
+product_name: SecureHome SHL-500 Smart Lock
+source_type: technical_and_manual
 ```
 
-## Kurulum
+İleride kullanıcı yorumları da ayrı kaynak türüyle indexlenecek:
 
-Sanal ortamı oluşturup bağımlılıkları kurun:
+```text
+technical_and_manual
+product_review
+```
+
+Yorumların planlanan akışı:
+
+```text
+PostgreSQL → RabbitMQ → sentiment worker → Qdrant review index
+```
+
+## Mevcut test ürünü
+
+Şu an test ürünü SecureHome SHL-500 Smart Lock'tır.
+
+```text
+data/processed/securehome-shl-500-technical-and-manual.md
+```
+
+Doküman; kapı kalınlığı, vida seçimi, backset, delik çapı, DoorSense ve acil güç beslemesi gibi gerçekçi teknik senaryolarla test edilmektedir.
+
+## Kurulum
 
 ```powershell
 python -m venv .venv
@@ -49,67 +117,80 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Qdrant'ı Docker ile başlatın:
+`.env` dosyasına Mistral API anahtarını ekleyin. API anahtarını Git'e commit etmeyin.
+
+Qdrant:
 
 ```powershell
 docker compose up -d qdrant
 ```
 
-## PDF'leri Markdown'a dönüştürme
+Dashboard: <http://localhost:6333/dashboard>
 
-Birden fazla hazır PDF için `data/document_manifest.yaml` kullanılır.
-Manifest, aynı ürüne ait teknik özellik ve kullanım kılavuzu gibi ayrı PDF'leri
-aynı `product_id` altında toplar; `brand` ve `source_type` gibi alanları da
-frontmatter metadata'sına taşır.
+## PDF dönüştürme ve ingestion
+
+PDF'leri `data/document_manifest.yaml` içinde ürün ve belge türüyle eşleştirin:
 
 ```powershell
-Copy-Item data\document_manifest.example.yaml data\document_manifest.yaml
-# source_dir ve documents alanlarını kendi PDF'lerinize göre düzenleyin.
 .venv\Scripts\python.exe -m scripts.convert_manifest data\document_manifest.yaml
-```
-
-Ham Markdown zaten oluşturulduysa Docling'i tekrar çalıştırmadan yalnızca
-manifest metadata'sını uygulayabilirsiniz:
-
-```powershell
-.venv\Scripts\python.exe -m scripts.apply_manifest_metadata data\document_manifest.yaml
-```
-
-## Chunk'ları kontrol etme
-
-```powershell
+.venv\Scripts\python.exe -m scripts.ingest
 .venv\Scripts\python.exe -m scripts.inspect_chunks
 ```
 
-## Qdrant'a ingestion
+## Backend ve frontend
+
+Backend:
 
 ```powershell
-.venv\Scripts\python.exe -m scripts.ingest
+.venv\Scripts\python.exe -m uvicorn src.main:app --reload --port 8000
 ```
 
-Qdrant dashboard: <http://localhost:6333/dashboard>
+Frontend:
 
-## Ürün sayfası chatbot isteği
+```powershell
+cd frontend
+npm install
+npm run dev
+```
 
-Frontend seçili ürünün ID'sini gönderirse semantic ve BM25 retrieval aynı ürünle
-sınırlandırılır:
+Frontend: <http://localhost:3000>
+
+Chat endpoint'i:
+
+```http
+POST /api/v1/chat
+```
 
 ```json
-POST /api/v1/chat
 {
-  "question": "Kaç gram?",
-  "product_id": "APPLE-IPHONE-14"
+  "question": "42 mm kapı için hangi montaj vidası kullanılmalı?",
+  "product_id": "SECUREHOME-SHL-500"
 }
 ```
 
-`product_id` gönderilmezse genel katalog araması yapılır.
+## Retrieval testi
 
-## Yol haritası
+```powershell
+.venv\Scripts\python.exe -m scripts.search_product_retriever "42 mm kapı için hangi montaj vidası kullanılmalı?"
+```
 
-- Retrieval kalitesini soru-cevap testleriyle ölçmek.
-- Mistral ile context tabanlı cevap üretimini tamamlamak.
-- Duplicate doküman ve chunk kontrolü eklemek.
-- `document_id`, dosya hash'i ve versiyonlama eklemek.
-- Büyük PDF işlemlerini background worker'a taşımak.
-- Parser, tablo ve ingestion kalite kontrollerini artırmak.
-- Gerekirse chunk'lar için sentetik kullanıcı soruları üretip reverse index oluşturmak.
+Hybrid retrieval testi:
+
+```powershell
+.venv\Scripts\python.exe -m scripts.search_hybrid_chunks "uygulama bağlantısı neden kopuyor"
+```
+
+## Gelecek aşamalar
+
+| Aşama | Amaç |
+|---|---|
+| Ürün ve yorum endpoint'leri | Ürünleri ve yorumları veritabanına almak |
+| RabbitMQ worker | Yorum sentiment analizini arka planda çalıştırmak |
+| Review indexing | İşlenmiş yorumları Qdrant'a eklemek |
+| PostgreSQL | SQLite prototipinden gerçek ilişkisel veritabanına geçmek |
+| Tool calling | Stok, sipariş ve ürün verilerini kontrollü araçlarla sorgulamak |
+| Evaluation set | Retrieval doğruluğunu ve regresyonları ölçmek |
+
+## Proje durumu
+
+Ingestion, semantic search, BM25, hybrid retrieval, context expansion, reranking ve Mistral generation akışları çalışır durumdadır. Proje şu anda gerçek bir ürün sayfasındaki retrieval ve kaynaklı cevap üretimini test eden prototip aşamasındadır.

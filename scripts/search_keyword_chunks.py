@@ -1,6 +1,6 @@
 import argparse
 
-from src.rag.retrievers.keyword_retriever import search_keyword_chunks
+from src.rag.retrievers.debug.keyword_retriever import search_keyword_chunks
 
 
 def main() -> None:

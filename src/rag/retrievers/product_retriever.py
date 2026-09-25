@@ -8,6 +8,7 @@ from qdrant_client import models
 from src.rag.loaders.markdown_loader import load_processed_markdown
 from src.rag.loaders.text_splitter import split_markdown_documents
 from src.rag.retrievers.bm25_index import build_bm25_retriever, load_bm25_retriever
+from src.rag.retrievers.context_expander import expand_with_related_context
 from src.rag.rerankers.cross_encoder import rerank_documents
 from src.rag.vectorstores.qdrant import get_vector_store
 
@@ -93,10 +94,17 @@ def get_product_retriever(product_id: str | None = None):
         keyword=keyword_retriever,
     )
 
-    return candidates | RunnableLambda(
-        lambda value: rerank_documents(
+    def rerank_with_context(value: dict) -> list:
+        # Önce aynı bölüm/tablonun parçalarını aday havuzuna ekliyoruz.
+        seed_candidates = merge_retrieval_candidates(value)
+        expanded_candidates = expand_with_related_context(
+            seed_candidates,
+            max_candidates=settings.reranker_candidate_k,
+        )
+        return rerank_documents(
             value["query"],
-            merge_retrieval_candidates(value),
+            expanded_candidates,
             top_k=settings.top_k,
         )
-    )
+
+    return candidates | RunnableLambda(rerank_with_context)

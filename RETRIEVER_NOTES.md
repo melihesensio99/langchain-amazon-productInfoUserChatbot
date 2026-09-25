@@ -123,7 +123,7 @@ ChatService
 Dosya:
 
 ```text
-src/rag/retrievers/qdrant_retriever.py
+src/rag/retrievers/debug/qdrant_retriever.py
 ```
 
 Bu dosya manuel test ve debug içindir.
@@ -156,7 +156,7 @@ qdrant_retriever.py
 Dosya:
 
 ```text
-src/rag/retrievers/keyword_retriever.py
+src/rag/retrievers/debug/keyword_retriever.py
 ```
 
 Bu dosya BM25 keyword aramasını prototip olarak çalıştırır.
