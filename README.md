@@ -180,6 +180,37 @@ Hybrid retrieval testi:
 .venv\Scripts\python.exe -m scripts.search_hybrid_chunks "uygulama bağlantısı neden kopuyor"
 ```
 
+## Ekran görüntüleri ve kaynak kontrollü cevaplar
+
+### Ürün dashboard'u
+
+![SecureHome SHL-500 ürün dashboard'u](docs/screenshots/product-dashboard.png)
+
+Ürün ekranında chatbot seçili ürünle birlikte açılır. Frontend, ürünün `product_id` değerini backend'e gönderir. Böylece soru başka ürünlerin chunk'larıyla karışmaz.
+
+### Kaynağa dayalı teknik cevaplar
+
+![Kaynaklı teknik cevaplar](docs/screenshots/grounded-answers.png)
+
+Bu görüntüde pil bitmesi, ana montaj deliği ve vida seçimi soruları görülüyor. Cevapların altında kullanılan SecureHome SHL-500 dokümanı kaynak olarak gösteriliyor. Örneğin 42 mm kapı için 40–50 mm aralığına karşılık gelen siyah vidalar seçiliyor.
+
+### Kaynakta olmayan bilgiyi uydurmama
+
+![Dokümanda olmayan DoorSense sorusu](docs/screenshots/missing-source-doorsense.png)
+
+DoorSense bilgisi mevcut SecureHome dokümanında bulunmadığı için chatbot yüzeye veya gömme montaja dair tahmin üretmiyor. Bunun yerine bilginin belgede bulunmadığını açıkça belirtiyor. Bu, RAG sisteminin dış bilgiyle cevap uydurmak yerine kaynak sınırına uymasıdır.
+
+![Dokümanda olmayan RAM ve işlemci sorusu](docs/screenshots/missing-source-specs.png)
+
+SecureHome SHL-500 için RAM ve işlemci bilgisi kaynaklarda bulunmadığından bu alanlar için cevap verilmediği belirtiliyor. Sistem yalnızca belgede gerçekten bulunan PIN, parmak izi, kapı kalınlığı ve güvenlik özellikleri gibi bilgileri bağlam olarak kullanıyor; RAM veya işlemci değeri icat etmiyor.
+
+Bu davranışın temel kuralı şudur:
+
+```text
+Retrieval sonucu yoksa veya kaynak soruyu desteklemiyorsa:
+cevap uydurma, bilginin dokümanda olmadığını belirt.
+```
+
 ## Gelecek aşamalar
 
 | Aşama | Amaç |
